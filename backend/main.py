@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.routers.cnn import router as cnn_router
+from app.routers.network import router as network_router
+from app.routers.training import router as training_router
+
 app = FastAPI(
     title="Deep Learning Visualizer API",
     description="Backend for Deep Learning Visualizer",
@@ -23,3 +27,8 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+app.include_router(network_router)
+app.include_router(cnn_router)
+app.include_router(training_router)
