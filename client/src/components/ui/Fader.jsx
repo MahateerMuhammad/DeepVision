@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 /**
  * Horizontal fader with tick marks and an optional red zone.
@@ -32,19 +32,26 @@ export default function Fader({
     [min, max, step, onChange]
   );
 
+  // Drag via window-level listeners so a drag that drifts off the thin track
+  // keeps updating (element pointer-capture on a <div> is unreliable across
+  // browsers, which made the slider feel like it "stuck" mid-drag).
+  const cleanupRef = useRef(null);
   const onPointerDown = (e) => {
     if (disabled) return;
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {
-      /* synthetic pointers can't be captured */
-    }
+    e.preventDefault();
     setFromClientX(e.clientX);
+    const move = (ev) => setFromClientX(ev.clientX);
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      cleanupRef.current = null;
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    cleanupRef.current = up;
   };
-  const onPointerMove = (e) => {
-    if (disabled || e.buttons !== 1) return;
-    setFromClientX(e.clientX);
-  };
+  useEffect(() => () => cleanupRef.current?.(), []);
+
   const onKeyDown = (e) => {
     if (disabled) return;
     const delta = e.key === "ArrowRight" || e.key === "ArrowUp" ? step : e.key === "ArrowLeft" || e.key === "ArrowDown" ? -step : 0;
@@ -63,7 +70,6 @@ export default function Fader({
       aria-valuemax={max}
       aria-valuenow={value}
       onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
       onKeyDown={onKeyDown}
       className={`relative h-6 cursor-ew-resize touch-none select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean ${
         disabled ? "pointer-events-none opacity-40" : ""
@@ -90,7 +96,7 @@ export default function Fader({
       />
       {/* thumb */}
       <div
-        className="pointer-events-none absolute top-1/2 h-4 w-2 -translate-x-1/2 -translate-y-1/2 border bg-panel shadow-instrument"
+        className="pointer-events-none absolute top-1/2 h-5 w-3 -translate-x-1/2 -translate-y-1/2 border-2 bg-panel shadow-instrument"
         style={{
           left: `${frac * 100}%`,
           borderColor: inRed ? "#ef4444" : "#18181b",

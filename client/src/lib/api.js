@@ -85,6 +85,41 @@ export const api = {
       method: "POST",
       body: { surface, start, num_steps: numSteps, racers },
     }),
+
+  // ── CNN (Module C) ──
+  createCnn: (spec) => request("/cnn", { method: "POST", body: { spec } }),
+  deleteCnn: (networkId) => request(`/cnn/${networkId}`, { method: "DELETE" }),
+
+  cnnForward: ({ networkId, image }) =>
+    request("/cnn/forward", {
+      method: "POST",
+      body: { network_id: networkId, image },
+    }),
+
+  slidingKernel: ({ image, kernel, stride = 1, padding = 0 }) =>
+    request("/cnn/sliding-kernel", {
+      method: "POST",
+      body: { image, kernel, stride, padding },
+    }),
+
+  receptiveField: ({ networkId, layerIndex, channel, row, col }) =>
+    request("/cnn/receptive-field", {
+      method: "POST",
+      body: { network_id: networkId, layer_index: layerIndex, channel, row, col },
+    }),
+
+  saliency: ({ networkId, image, targetClass }) =>
+    request("/cnn/saliency", {
+      method: "POST",
+      body: { network_id: networkId, image, target_class: targetClass },
+    }),
+
+  // ── BatchNorm (Module F) ──
+  batchnorm: ({ batch, gamma = null, beta = null, eps = 1e-5 }) =>
+    request("/training/batchnorm", {
+      method: "POST",
+      body: { batch, gamma, beta, eps },
+    }),
 };
 
 export { API_BASE };

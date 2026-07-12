@@ -1,67 +1,91 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import Panel from "../components/ui/Panel";
-import { useEngine } from "../lib/useEngine";
+import Workbench from "../components/layout/Workbench";
+import FilterFactory from "../components/cnn/FilterFactory";
+import ConvExplorer from "../components/cnn/ConvExplorer";
 
-const ENDPOINTS = [
-  { path: "POST /cnn/sliding-kernel", desc: "Kernel convolution, position by position" },
-  { path: "POST /cnn/forward", desc: "Full feature-map forward pass" },
-  { path: "POST /cnn/receptive-field", desc: "Pixel provenance for any activation" },
-  { path: "POST /cnn/saliency", desc: "Input-gradient saliency maps" },
+const MODES = [
+  { value: "filter", label: "Filter Factory" },
+  { value: "conv", label: "Conv Explorer" },
+  { value: "receptive", label: "Receptive Field" },
+  { value: "saliency", label: "Saliency" },
 ];
 
+const COMING = {
+  receptive: {
+    title: "Receptive Field",
+    body: "Cast a cone of light backward from any deep activation to the exact input patch that produced it.",
+    endpoints: ["POST /cnn/receptive-field"],
+  },
+  saliency: {
+    title: "Saliency",
+    body: "Ask the network why it predicted a class — overlay an input-gradient heat map on the source image.",
+    endpoints: ["POST /cnn/saliency"],
+  },
+};
+
 export default function CnnLab() {
-  const { online } = useEngine();
-  return (
-    <main className="dot-grid relative flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-6">
+  const [mode, setMode] = useState("filter");
+  const tabBar = (
+    <div>
+      <p className="micro-label mb-2">Instrument</p>
+      <div className="grid grid-cols-2 gap-1.5" role="tablist">
+        {MODES.map((m) => {
+          const selected = m.value === mode;
+          return (
+            <button
+              key={m.value}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => setMode(m.value)}
+              className={`flex h-8 items-center justify-center whitespace-nowrap border px-2 text-[10px] font-semibold uppercase tracking-[0.05em] transition-colors duration-150 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cerulean ${
+                selected
+                  ? "border-ink bg-ink text-white"
+                  : "border-line bg-panel text-ink-soft hover:bg-black/[0.04] hover:text-ink"
+              }`}
+              style={{ borderRadius: 3 }}
+            >
+              {m.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  if (mode === "filter") return <FilterFactory tabBar={tabBar} />;
+  if (mode === "conv") return <ConvExplorer tabBar={tabBar} />;
+
+  const info = COMING[mode];
+  const canvas = (
+    <div className="dot-grid flex h-full items-center justify-center p-6">
       <motion.div
+        key={mode}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-lg"
+        className="max-w-sm border border-line bg-panel px-6 py-5 text-center shadow-instrument"
+        style={{ borderRadius: 4 }}
       >
-        <Panel
-          title="Module C — Convolution Instrument"
-          right={<span className="micro-label !text-crimson">Phase 2</span>}
-        >
-          <div className="border-b border-line px-5 py-6">
-            <div className="mb-3 flex items-center gap-2">
-              <span className="inline-block h-2 w-2 border border-ink-soft" aria-hidden />
-              <h1 className="text-sm font-bold tracking-[0.08em] uppercase">
-                Instrument Offline
-              </h1>
+        <div className="mb-2 flex items-center justify-center gap-2">
+          <span className="inline-block h-2 w-2 border border-ink-soft" aria-hidden />
+          <h2 className="text-sm font-bold uppercase tracking-[0.08em]">{info.title}</h2>
+        </div>
+        <p className="mb-4 text-[13px] leading-relaxed text-ink-soft">{info.body}</p>
+        <div className="flex flex-col gap-1.5">
+          {info.endpoints.map((e) => (
+            <div key={e} className="flex items-center justify-center gap-2">
+              <span className="led-online h-1.5 w-1.5 rounded-full bg-emerald-sig" />
+              <span className="mono-num text-[11px]">{e}</span>
+              <span className="micro-label !text-emerald-sig">live</span>
             </div>
-            <p className="text-[13px] leading-relaxed text-ink-soft">
-              The convolution optics for this bay are scheduled for Phase 2 — sliding-kernel
-              scanning, feature-map towers, receptive-field tracebacks and saliency imaging.
-              The engine already answers on every required channel below.
-            </p>
-          </div>
-          <ul>
-            {ENDPOINTS.map((e, i) => (
-              <li
-                key={e.path}
-                className={`flex items-center gap-3 px-5 py-3 ${i > 0 ? "border-t border-line" : ""}`}
-              >
-                <span
-                  className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                    online ? "led-online bg-emerald-sig" : "bg-crimson"
-                  }`}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="mono-num truncate text-xs font-medium">{e.path}</p>
-                  <p className="text-[11px] text-ink-soft">{e.desc}</p>
-                </div>
-                <span className={`micro-label ${online ? "!text-emerald-sig" : "!text-crimson"}`}>
-                  {online ? "Endpoint live" : "Unreachable"}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <footer className="border-t border-line px-5 py-2.5">
-            <p className="micro-label">DeepVision · Bay C · awaiting optics</p>
-          </footer>
-        </Panel>
+          ))}
+        </div>
+        <p className="micro-label mt-4">Next instrument · optics inbound</p>
       </motion.div>
-    </main>
+    </div>
   );
+  const inspector = <div className="p-4">{tabBar}</div>;
+  return <Workbench canvas={canvas} inspector={inspector} />;
 }
