@@ -247,11 +247,13 @@ export default function ConvExplorer({ tabBar }) {
 
       {/* selection detail / classifier output */}
       <div className="border-b border-line p-4">
-        {selectedLayer ? (
-          <SelectionDetail layer={selectedLayer} channel={selected.channel} onClear={() => setSelected(null)} />
-        ) : (
-          <ClassifierReadout forward={forward} numClasses={spec.num_classes} />
-        )}
+        <ErrorBoundary resetKey={`${selected?.layerIndex}:${selected?.channel}`}>
+          {selectedLayer ? (
+            <SelectionDetail layer={selectedLayer} channel={selected.channel} onClear={() => setSelected(null)} />
+          ) : (
+            <ClassifierReadout forward={forward} numClasses={spec.num_classes} />
+          )}
+        </ErrorBoundary>
       </div>
 
       {/* input */}
@@ -446,7 +448,7 @@ function PaintGrid({ grid, onPaintStart, onPaintOver }) {
   );
 }
 
-function MiniHeat({ grid, cell = 16 }) {
+function MiniHeat({ grid, cell = 16, onCellClick, selected }) {
   const { min, max } = gridExtent(grid);
   const H = grid.length;
   const W = grid[0].length;
@@ -454,9 +456,23 @@ function MiniHeat({ grid, cell = 16 }) {
   return (
     <svg width={W * c} height={H * c} className="block border border-line" style={{ borderRadius: 3 }}>
       {grid.map((row, r) =>
-        row.map((v, cc) => (
-          <rect key={`${r}-${cc}`} x={cc * c} y={r * c} width={c} height={c} fill={cssColor(v, min, max)} stroke="#E4E4E7" strokeWidth="0.4" />
-        ))
+        row.map((v, cc) => {
+          const isSel = selected && selected.r === r && selected.c === cc;
+          return (
+            <rect
+              key={`${r}-${cc}`}
+              x={cc * c}
+              y={r * c}
+              width={c}
+              height={c}
+              fill={cssColor(v, min, max)}
+              stroke={isSel ? "#0EA5E9" : "#E4E4E7"}
+              strokeWidth={isSel ? 2 : 0.4}
+              style={onCellClick ? { cursor: "pointer" } : undefined}
+              onClick={onCellClick ? () => onCellClick(r, cc) : undefined}
+            />
+          );
+        })
       )}
     </svg>
   );
@@ -464,27 +480,169 @@ function MiniHeat({ grid, cell = 16 }) {
 
 function SelectionDetail({ layer, channel, onClear }) {
   if (layer.kind === "pool") return <PoolingDetail layer={layer} channel={channel} onClear={onClear} />;
-  const grid = layer.kind === "input" ? layer.channels[channel] : layer.post_activation[channel];
+  if (layer.kind === "input") return <InputDetail layer={layer} channel={channel} onClear={onClear} />;
+  return <ConvDetail layer={layer} channel={channel} onClear={onClear} />;
+}
+
+function DetailHeader({ title, channel, onClear }) {
+  return (
+    <div className="mb-2 flex items-center justify-between">
+      <p className="micro-label">
+        {title} · <span className="text-ink">ch {channel}</span>
+      </p>
+      <button type="button" onClick={onClear} className="micro-label hover:text-ink">
+        Clear
+      </button>
+    </div>
+  );
+}
+
+function StatRow({ grid }) {
   const { min, max } = gridExtent(grid);
   const flat = grid.flat();
   const mean = flat.reduce((a, b) => a + b, 0) / flat.length;
-  const title = layer.kind === "input" ? "Input" : `Conv · ${layer.activation}`;
+  return (
+    <div className="mono-num mt-2 flex gap-3 text-[10px] text-ink-soft">
+      <span>min {min.toFixed(2)}</span>
+      <span>max {max.toFixed(2)}</span>
+      <span>μ {mean.toFixed(2)}</span>
+    </div>
+  );
+}
+
+function InputDetail({ layer, channel, onClear }) {
+  const grid = layer.channels[channel];
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between">
-        <p className="micro-label">
-          {title} · <span className="text-ink">ch {channel}</span>
-        </p>
-        <button type="button" onClick={onClear} className="micro-label hover:text-ink">
-          Clear
-        </button>
-      </div>
+      <DetailHeader title="Input" channel={channel} onClear={onClear} />
       <MiniHeat grid={grid} />
-      <div className="mono-num mt-2 flex gap-3 text-[10px] text-ink-soft">
-        <span>min {min.toFixed(2)}</span>
-        <span>max {max.toFixed(2)}</span>
-        <span>μ {mean.toFixed(2)}</span>
+      <StatRow grid={grid} />
+    </div>
+  );
+}
+
+function ConvDetail({ layer, channel, onClear }) {
+  const grid = layer.post_activation[channel];
+  const [pixel, setPixel] = useState(null);
+  useEffect(() => setPixel(null), [layer, channel]);
+  // Guard against a stale pixel from a previously-selected (larger) channel:
+  // the reset effect runs after render, so bounds-check synchronously here.
+  const valid = pixel && pixel.r < grid.length && pixel.c < grid[0].length ? pixel : null;
+  return (
+    <div>
+      <DetailHeader title={`Conv · ${layer.activation}`} channel={channel} onClear={onClear} />
+      <MiniHeat grid={grid} onCellClick={(r, c) => setPixel({ r, c })} selected={valid} />
+      <StatRow grid={grid} />
+      {valid ? (
+        <ConvPixelCalc layer={layer} channel={channel} pixel={valid} />
+      ) : (
+        <p className="mt-2 text-[11px] leading-relaxed text-ink-soft">
+          Click a cell above to see the exact convolution that produced it.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function convPixelBreakdown(layer, oc, or, ocol) {
+  const k = layer.kernel_size;
+  const s = layer.stride;
+  const p = layer.padding;
+  const W = layer.weights[oc]; // Cin × k × k
+  const channels = [];
+  let total = 0;
+  for (let ic = 0; ic < layer.input.length; ic++) {
+    const src = layer.input[ic];
+    const H = src.length;
+    const Wd = src[0].length;
+    const patch = [];
+    const products = [];
+    let partial = 0;
+    for (let ki = 0; ki < k; ki++) {
+      const prow = [];
+      const erow = [];
+      for (let kj = 0; kj < k; kj++) {
+        const ir = or * s + ki - p;
+        const jc = ocol * s + kj - p;
+        const x = ir >= 0 && ir < H && jc >= 0 && jc < Wd ? src[ir][jc] : 0;
+        const prod = W[ic][ki][kj] * x;
+        prow.push(x);
+        erow.push(prod);
+        partial += prod;
+      }
+      patch.push(prow);
+      products.push(erow);
+    }
+    total += partial;
+    channels.push({ ic, patch, kernel: W[ic], products, partial });
+  }
+  return { channels, bias: layer.biases[oc], preTotal: total };
+}
+
+const actName = { relu: "relu", sigmoid: "σ", tanh: "tanh", linear: "id", leaky_relu: "lrelu" };
+
+function ConvPixelCalc({ layer, channel, pixel }) {
+  const { channels, bias } = convPixelBreakdown(layer, channel, pixel.r, pixel.c);
+  const z = layer.pre_activation[channel][pixel.r][pixel.c];
+  const a = layer.post_activation[channel][pixel.r][pixel.c];
+  const multi = channels.length > 1;
+  return (
+    <div className="mt-3 border-t border-line pt-3">
+      <p className="micro-label mb-2">
+        Output pixel <span className="mono-num text-ink">({pixel.r}, {pixel.c})</span>
+        {multi && <span className="text-ink-soft"> · sums {channels.length} input channels</span>}
+      </p>
+      <div className="flex flex-col gap-2.5">
+        {channels.map((ch) => (
+          <div key={ch.ic} className="flex flex-wrap items-center gap-2">
+            {multi && <span className="mono-num w-8 text-[10px] text-ink-soft">in {ch.ic}</span>}
+            <CalcGrid values={ch.patch} tint />
+            <span className="text-ink-soft">⊙</span>
+            <CalcGrid values={ch.kernel} />
+            <span className="text-ink-soft">→</span>
+            <span className="mono-num text-[11px]" style={{ color: ch.partial >= 0 ? "#0EA5E9" : "#EF4444" }}>
+              {ch.partial.toFixed(3)}
+            </span>
+          </div>
+        ))}
       </div>
+      <div className="mono-num mt-3 flex flex-col gap-1 border-t border-line pt-2 text-[11px]">
+        <div>
+          <span className="text-ink-soft">{multi ? "Σ channels" : "Σ"} + bias = </span>
+          <span className="text-ink-soft">
+            {channels.reduce((s, c) => s + c.partial, 0).toFixed(3)} + ({bias.toFixed(3)})
+          </span>
+          <span className="ml-1">= </span>
+          <span className="font-semibold text-ink">z = {z.toFixed(3)}</span>
+        </div>
+        <div>
+          <span className="text-ink-soft">a = {actName[layer.activation] ?? layer.activation}(z) = </span>
+          <span className="font-semibold text-cerulean">{a.toFixed(3)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CalcGrid({ values, tint }) {
+  const { min, max } = gridExtent(values);
+  const cols = values[0]?.length ?? 0;
+  return (
+    <div className="grid gap-px" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
+      {values.flat().map((v, i) => (
+        <span
+          key={i}
+          className="mono-num flex h-6 w-6 items-center justify-center text-[9px]"
+          style={{
+            background: tint ? cssColor(v, min, max) : "transparent",
+            color: tint && (v - min) / (max - min || 1) > 0.6 ? "#fff" : "#18181b",
+            border: tint ? "none" : "1px solid #E4E4E7",
+            borderRadius: 2,
+          }}
+        >
+          {Number.isInteger(v) ? v : v.toFixed(1)}
+        </span>
+      ))}
     </div>
   );
 }
