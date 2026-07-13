@@ -29,6 +29,7 @@ export function useNetwork(toast) {
   const [network, setNetwork] = useState(null); // {id, paramCount, spec}
   const [forward, setForward] = useState(null);
   const [backward, setBackward] = useState(null);
+  const [lossHistory, setLossHistory] = useState([]); // cumulative loss across training steps
   const [busy, setBusy] = useState(false);
   const autoTried = useRef(false);
   const seqRef = useRef(0); // guards stale async writes
@@ -53,6 +54,7 @@ export function useNetwork(toast) {
         if (seq !== seqRef.current) return null;
         const net = { id: created.network_id, paramCount: created.param_count };
         setNetwork(net);
+        setLossHistory([]); // fresh weights → fresh descent curve
         setParamCount(created.param_count);
         const fwd = await api.forward({ networkId: net.id, input });
         if (seq !== seqRef.current) return null;
@@ -115,6 +117,32 @@ export function useNetwork(toast) {
     [network, inputVec, targetVec, loss, toast]
   );
 
+  const runStep = useCallback(
+    async (learningRate, numSteps, input = inputVec, target = targetVec, lossName = loss) => {
+      if (!network) return null;
+      const seq = ++seqRef.current;
+      setBusy(true);
+      try {
+        const res = await api.step({ networkId: network.id, input, target, loss: lossName, learningRate, numSteps });
+        if (seq !== seqRef.current) return null;
+        // the step endpoint returns a full backward tree at the updated weights
+        setBackward(res.state_tree);
+        setForward(res.state_tree);
+        // stitch onto the running curve (the returned [0] repeats the prior end)
+        setLossHistory((h) => (h.length ? [...h, ...res.loss_history.slice(1)] : res.loss_history));
+        return res;
+      } catch (e) {
+        if (seq === seqRef.current) toast?.(`STEP — ${e.message}`);
+        return null;
+      } finally {
+        if (seq === seqRef.current) setBusy(false);
+      }
+    },
+    [network, inputVec, targetVec, loss, toast]
+  );
+
+  const resetHistory = useCallback(() => setLossHistory([]), []);
+
   // auto-forge the default network once the engine is confirmed up
   useEffect(() => {
     if (online === true && !autoTried.current) {
@@ -136,9 +164,12 @@ export function useNetwork(toast) {
     network,
     forward,
     backward,
+    lossHistory,
     busy,
     forge,
     runForward,
     runBackward,
+    runStep,
+    resetHistory,
   };
 }

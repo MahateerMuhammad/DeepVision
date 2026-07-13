@@ -53,6 +53,20 @@ export const api = {
       body: { network_id: networkId, input, target, loss, training },
     }),
 
+  step: ({ networkId, input, target, loss = "mse", learningRate = 0.1, numSteps = 1, training = true }) =>
+    request("/networks/step", {
+      method: "POST",
+      body: {
+        network_id: networkId,
+        input,
+        target,
+        loss,
+        learning_rate: learningRate,
+        num_steps: numSteps,
+        training,
+      },
+    }),
+
   trace: ({ networkId, input, target, loss, layerIndex, weightRow, weightCol }) =>
     request("/networks/trace", {
       method: "POST",

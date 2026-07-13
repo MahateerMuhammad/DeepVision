@@ -129,6 +129,104 @@ def test_delete_network_then_404_on_use():
     assert resp.status_code == 404
 
 
+def test_step_returns_loss_history_and_state_tree():
+    body = _create_network()
+    resp = client.post(
+        "/networks/step",
+        json={
+            "network_id": body["network_id"],
+            "input": [1.0, -2.0, 0.5],
+            "target": [0.2, 0.8],
+            "loss": "mse",
+            "learning_rate": 0.5,
+            "num_steps": 10,
+            "training": False,
+        },
+    )
+    assert resp.status_code == 200
+    result = resp.json()
+    # loss_history has one entry per step plus the final post-update loss
+    assert len(result["loss_history"]) == 11
+    assert result["num_steps"] == 10
+    assert "state_tree" in result and "loss" in result["state_tree"]
+    # the state tree's loss closes out the descent curve
+    assert result["state_tree"]["loss"] == pytest.approx(result["loss_history"][-1], abs=1e-6)
+
+
+def test_step_reduces_loss():
+    body = _create_network()
+    resp = client.post(
+        "/networks/step",
+        json={
+            "network_id": body["network_id"],
+            "input": [1.0, -2.0, 0.5],
+            "target": [0.2, 0.8],
+            "loss": "mse",
+            "learning_rate": 0.5,
+            "num_steps": 30,
+            "training": False,
+        },
+    ).json()
+    # plain SGD on a fixed sample must monotonically-ish drive loss down
+    assert resp["loss_history"][-1] < resp["loss_history"][0]
+
+
+def test_step_updates_weights_persistently():
+    body = _create_network()
+    nid = body["network_id"]
+    payload = {
+        "network_id": nid,
+        "input": [1.0, -2.0, 0.5],
+        "target": [0.2, 0.8],
+        "loss": "mse",
+        "learning_rate": 0.3,
+        "num_steps": 5,
+        "training": False,
+    }
+    first = client.post("/networks/step", json=payload).json()
+    w_before = first["state_tree"]["layers"][0]["weights"]
+
+    # a fresh backward at the same weights (no update) must report the same loss
+    # the previous step ended on — proving the update persisted on the registry
+    bwd = client.post(
+        "/networks/backward",
+        json={"network_id": nid, "input": payload["input"], "target": payload["target"], "loss": "mse", "training": False},
+    ).json()
+    assert bwd["loss"] == pytest.approx(first["loss_history"][-1], abs=1e-6)
+
+    # a second round of steps continues descending from the persisted weights
+    second = client.post("/networks/step", json=payload).json()
+    w_after = second["state_tree"]["layers"][0]["weights"]
+    assert w_before != w_after
+    assert second["loss_history"][0] == pytest.approx(first["loss_history"][-1], abs=1e-6)
+
+
+def test_step_unknown_network_404():
+    resp = client.post(
+        "/networks/step",
+        json={"network_id": "nope", "input": [1, 2, 3], "target": [0.2, 0.8]},
+    )
+    assert resp.status_code == 404
+
+
+def test_step_invalid_num_steps_422():
+    body = _create_network()
+    resp = client.post(
+        "/networks/step",
+        json={"network_id": body["network_id"], "input": [1, 2, 3], "target": [0.2, 0.8], "num_steps": 0},
+    )
+    assert resp.status_code == 422
+
+
+def test_step_bad_input_length_400():
+    body = _create_network()
+    resp = client.post(
+        "/networks/step",
+        json={"network_id": body["network_id"], "input": [1.0, 2.0], "target": [0.2, 0.8]},
+    )
+    assert resp.status_code == 400
+
+
 def test_full_vcr_style_session_forward_then_backward_then_trace():
     """Simulate the frontend's actual usage pattern: create once, then step
     through forward, backward, and inspect a specific weight via trace — all

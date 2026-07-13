@@ -53,6 +53,16 @@ class BackwardPassRequest(BaseModel):
     training: bool = True
 
 
+class StepRequest(BaseModel):
+    network_id: str
+    input: list[float]
+    target: list[float]
+    loss: LossFn = "mse"
+    learning_rate: float = Field(default=0.1, gt=0.0)
+    num_steps: int = Field(default=1, ge=1, le=500)
+    training: bool = True
+
+
 class TraceRequest(BaseModel):
     network_id: str
     input: list[float]

@@ -3,11 +3,13 @@ from fastapi import APIRouter, HTTPException
 from app.core.ann_registry import ann_registry
 from app.engine.ann.chain_rule import trace_weight_gradient
 from app.engine.ann.state_tree import build_backward_state_tree, build_forward_state_tree
+from app.engine.ann.train_step import apply_gradient_steps
 from app.schemas.network import (
     BackwardPassRequest,
     CreateNetworkRequest,
     CreateNetworkResponse,
     ForwardPassRequest,
+    StepRequest,
     TraceRequest,
 )
 
@@ -47,6 +49,27 @@ def backward_pass(req: BackwardPassRequest) -> dict:
 
     try:
         return build_backward_state_tree(net, req.input, req.target, req.loss, req.training)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@router.post("/step")
+def training_step(req: StepRequest) -> dict:
+    try:
+        net = ann_registry.get(req.network_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"network {req.network_id} not found")
+
+    try:
+        return apply_gradient_steps(
+            net,
+            req.input,
+            req.target,
+            req.loss,
+            req.learning_rate,
+            req.num_steps,
+            req.training,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 

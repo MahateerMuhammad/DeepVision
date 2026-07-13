@@ -8,6 +8,7 @@ import TraceView from "../components/canvas/TraceView";
 import NodeCard from "../components/canvas/NodeCard";
 import KatexBlock from "../components/ui/KatexBlock";
 import Odometer from "../components/ui/Odometer";
+import InstrumentButton from "../components/ui/InstrumentButton";
 import { useToast } from "../components/ui/Toast";
 import { useNetwork, DEFAULT_SPEC } from "../lib/useNetwork";
 import { layoutNetwork } from "../lib/graphLayout";
@@ -49,6 +50,10 @@ export default function NetworkCanvas() {
   const [traceLoading, setTraceLoading] = useState(false);
   const [deadXray, setDeadXray] = useState(false);
   const [shockwaveKey, setShockwaveKey] = useState(0);
+
+  // ── training controls ──
+  const [lr, setLr] = useState(0.1);
+  const [steps, setSteps] = useState(10);
 
   const resetPlayback = useCallback(() => {
     setRevealed(0);
@@ -120,10 +125,26 @@ export default function NetworkCanvas() {
     if (!net.network) return;
     const input = nums(net.inputVec);
     setShockwaveKey((k) => k + 1);
+    net.resetHistory(); // new sample/target => a new descent curve
     if (mode === "backward") {
       await net.runBackward(input, nums(net.targetVec), net.loss);
     } else {
       await net.runForward(input);
+    }
+  };
+
+  // apply N SGD steps to the live weights, then show the updated gradient field
+  const handleTrain = async () => {
+    if (!net.network) return;
+    const res = await net.runStep(lr, steps, nums(net.inputVec), nums(net.targetVec), net.loss);
+    if (res) {
+      setSelection(null);
+      setTrace(null);
+      setMode("backward");
+      setRevealed(L); // reveal the whole updated network at once
+      setPulsing(null);
+      setPlaying(false);
+      setShockwaveKey((k) => k + 1);
     }
   };
 
@@ -311,6 +332,68 @@ uvicorn main:app --port 8000`}
           hasNetwork={net.network != null}
         />
 
+        {net.network && (
+          <div className="border-t border-line p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="micro-label">Train · gradient descent</p>
+              {net.lossHistory.length > 1 && (
+                <span className="mono-num text-[10px] text-ink-soft">{net.lossHistory.length - 1} steps</span>
+              )}
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2">
+              <label className="flex items-center justify-between gap-1">
+                <span className="micro-label">lr</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.001"
+                  value={lr}
+                  onChange={(e) => setLr(Math.max(0.001, Number(e.target.value) || 0.001))}
+                  className="mono-num h-7 w-16 border border-line bg-panel px-1.5 text-[11px] focus:border-ink focus:outline-none"
+                  style={{ borderRadius: 3 }}
+                />
+              </label>
+              <label className="flex items-center justify-between gap-1">
+                <span className="micro-label">steps</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="500"
+                  value={steps}
+                  onChange={(e) => setSteps(Math.min(500, Math.max(1, Math.round(Number(e.target.value) || 1))))}
+                  className="mono-num h-7 w-16 border border-line bg-panel px-1.5 text-[11px] focus:border-ink focus:outline-none"
+                  style={{ borderRadius: 3 }}
+                />
+              </label>
+            </div>
+            <InstrumentButton variant="primary" className="w-full" disabled={net.busy} onClick={handleTrain}>
+              {net.busy ? "Training…" : `Apply gradient · ${steps} step${steps === 1 ? "" : "s"}`}
+            </InstrumentButton>
+
+            {net.lossHistory.length > 1 && (
+              <div className="mt-3">
+                <div className="mb-0.5 flex items-center justify-between">
+                  <span className="micro-label">loss</span>
+                  <span className="mono-num text-[11px] text-ink">
+                    {net.lossHistory[net.lossHistory.length - 1].toFixed(6)}
+                  </span>
+                </div>
+                <LossSparkline history={net.lossHistory} />
+                <div className="flex items-center justify-between">
+                  <span className="mono-num text-[9px] text-ink-soft">start {net.lossHistory[0].toFixed(4)}</span>
+                  <span className="mono-num text-[9px] text-emerald-sig">
+                    −{(((net.lossHistory[0] - net.lossHistory[net.lossHistory.length - 1]) / (net.lossHistory[0] || 1)) * 100).toFixed(0)}%
+                  </span>
+                </div>
+              </div>
+            )}
+            <p className="mt-2 text-[10px] leading-relaxed text-ink-soft">
+              Applies plain SGD to the live weights, then re-runs backprop — watch the gradient field
+              and loss shrink over repeated presses. This mutates the network; Forge to reset.
+            </p>
+          </div>
+        )}
+
         {net.forward && (
           <div className="border-t border-line p-4">
             <div className="flex items-center justify-between">
@@ -414,4 +497,34 @@ uvicorn main:app --port 8000`}
     );
 
   return <Workbench canvas={canvas} inspector={inspector} />;
+}
+
+/** Stretch-to-fit loss curve. preserveAspectRatio="none" lets it fill the panel
+ *  width regardless of how many points the training history holds. */
+function LossSparkline({ history }) {
+  const W = 300;
+  const H = 46;
+  const pad = 3;
+  if (!history || history.length < 2) return null;
+  const min = Math.min(...history);
+  const max = Math.max(...history);
+  const span = max - min || 1;
+  const n = history.length;
+  const points = history
+    .map((v, i) => {
+      const x = pad + (i / (n - 1)) * (W - 2 * pad);
+      const y = pad + (1 - (v - min) / span) * (H - 2 * pad);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="none"
+      className="block w-full border border-line bg-canvas"
+      style={{ height: H, borderRadius: 3 }}
+    >
+      <polyline points={points} fill="none" stroke="#0EA5E9" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
 }
