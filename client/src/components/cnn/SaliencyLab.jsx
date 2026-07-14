@@ -64,7 +64,7 @@ export default function SaliencyLab({ tabBar }) {
         setTargetClass((t) => Math.min(t, theSpec.num_classes - 1));
         if (prev) api.deleteCnn(prev).catch(() => {});
       } catch (e) {
-        toast(`CNN — ${e.message}`);
+        toast(`CNN ${e.message}`);
       } finally {
         setBusy(false);
       }
@@ -83,7 +83,7 @@ export default function SaliencyLab({ tabBar }) {
       api
         .saliency({ networkId, image: [image], targetClass })
         .then((data) => alive && setResult(data))
-        .catch((e) => alive && toast(`SALIENCY — ${e.message}`));
+        .catch((e) => alive && toast(`SALIENCY ${e.message}`));
     }, 120);
     return () => {
       alive = false;
@@ -205,7 +205,7 @@ export default function SaliencyLab({ tabBar }) {
       <div className="border-b border-line p-4">
         <div className="mb-2 flex items-center justify-between">
           <p className="micro-label">Input · <span className="mono-num text-ink-soft">{spec.input_height}×{spec.input_width}</span></p>
-          <label className="flex items-center gap-1.5 text-[11px] text-ink-soft">
+          <label className="flex items-center gap-1.5 text-[13px] text-ink-soft">
             <input type="checkbox" checked={showOverlay} onChange={(e) => setShowOverlay(e.target.checked)} />
             overlay
           </label>
@@ -270,7 +270,7 @@ export default function SaliencyLab({ tabBar }) {
             type="number"
             value={spec.seed ?? 0}
             onChange={(e) => patchSpec({ seed: Number(e.target.value) })}
-            className="mono-num h-7 w-20 border border-line bg-panel px-1.5 text-[11px] focus:border-ink focus:outline-none"
+            className="mono-num h-7 w-20 border border-line bg-panel px-1.5 text-[13px] focus:border-ink focus:outline-none"
             style={{ borderRadius: 3 }}
           />
         </div>
@@ -280,10 +280,10 @@ export default function SaliencyLab({ tabBar }) {
         <InstrumentButton variant="primary" className="w-full" disabled={busy} onClick={onForge}>
           {busy ? "Forging…" : "Forge CNN"}
         </InstrumentButton>
-        <p className="mt-3 text-[11px] leading-relaxed text-ink-soft">
+        <p className="mt-3 text-[13px] leading-relaxed text-ink-soft">
           Vanilla-gradient saliency: the network runs a backward pass of the target class's logit onto
           the input, so each pixel's brightness is how much nudging it would change that score. Untrained
-          weights give diffuse maps — the mechanism is what matters here.
+          weights give diffuse maps the mechanism is what matters here.
         </p>
       </div>
     </div>
@@ -410,7 +410,7 @@ function ClassPanel({ result, numClasses, targetClass, onPick }) {
               }`}
               style={{ borderRadius: 3 }}
             >
-              <span className={`mono-num w-4 text-[11px] ${i === pred ? "text-cerulean" : "text-ink-soft"}`}>{i}</span>
+              <span className={`mono-num w-4 text-[13px] ${i === pred ? "text-cerulean" : "text-ink-soft"}`}>{i}</span>
               <div className="h-3 flex-1 overflow-hidden bg-line" style={{ borderRadius: 2 }}>
                 <div
                   className="h-full"
@@ -426,9 +426,9 @@ function ClassPanel({ result, numClasses, targetClass, onPick }) {
           );
         })}
       </div>
-      <p className="mt-2 text-[11px] leading-relaxed text-ink-soft">
+      <p className="mt-2 text-[13px] leading-relaxed text-ink-soft">
         Saliency is computed for the <span className="text-cerulean">selected</span> class (click a row to
-        change it) — not necessarily the predicted one, so you can ask "which pixels support a class the
+        change it) not necessarily the predicted one, so you can ask "which pixels support a class the
         net <em>didn't</em> choose?"
       </p>
     </div>

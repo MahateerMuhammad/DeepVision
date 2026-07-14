@@ -95,7 +95,7 @@ export default function OptimizerArena() {
     api
       .lossSurface({ surface, resolution: 70 })
       .then((data) => alive && setGrid(data))
-      .catch((e) => alive && toast(`LOSS SURFACE — ${e.message}`))
+      .catch((e) => alive && toast(`LOSS SURFACE ${e.message}`))
       .finally(() => alive && setGridLoading(false));
     return () => {
       alive = false;
@@ -200,7 +200,7 @@ export default function OptimizerArena() {
       };
       rafRef.current = requestAnimationFrame(tick);
     } catch (e) {
-      toast(`RACE — ${e.message}`);
+      toast(`RACE ${e.message}`);
       setRacing(false);
     }
   };
@@ -379,7 +379,7 @@ export default function OptimizerArena() {
                     className="flex h-4 w-4 items-center justify-center border border-ink"
                     style={{ borderRadius: 2, background: r.enabled ? r.color : "transparent" }}
                   />
-                  <span className="text-[11px] font-semibold tracking-[0.06em] uppercase">{r.label}</span>
+                  <span className="text-[13px] font-semibold tracking-[0.06em] uppercase">{r.label}</span>
                   <span className="flex-1" />
                   <AnimatePresence>
                     {showDiverged && (
@@ -390,14 +390,14 @@ export default function OptimizerArena() {
                         className="mono-num border border-crimson bg-crimson px-1.5 py-0.5 text-[9px] font-semibold text-white"
                         style={{ borderRadius: 2 }}
                       >
-                        NaN — DIVERGED
+                        NaN DIVERGED
                       </motion.span>
                     )}
                   </AnimatePresence>
                 </div>
                 <div className="mb-1 flex items-center justify-between">
                   <span className="micro-label">Learning rate</span>
-                  <span className={`mono-num text-[11px] font-medium ${r.lr >= 0.6 ? "text-crimson" : ""}`}>
+                  <span className={`mono-num text-[13px] font-medium ${r.lr >= 0.6 ? "text-crimson" : ""}`}>
                     {r.lr.toFixed(3)}
                   </span>
                 </div>
@@ -437,7 +437,7 @@ export default function OptimizerArena() {
       <div className="p-4">
         <div className="mb-3 flex items-center justify-between">
           <span className="micro-label">Start point</span>
-          <span className="mono-num text-[11px]">
+          <span className="mono-num text-[13px]">
             ({start[0].toFixed(2)}, {start[1].toFixed(2)})
           </span>
         </div>
@@ -449,8 +449,8 @@ export default function OptimizerArena() {
         >
           {racing ? "Racing…" : "Race"}
         </InstrumentButton>
-        <p className="mt-3 text-[11px] leading-relaxed text-ink-soft">
-          Push a learning-rate fader into the red zone and re-race to watch a trajectory blow up —
+        <p className="mt-3 text-[13px] leading-relaxed text-ink-soft">
+          Push a learning rate fader into the red zone and re-race to watch a trajectory blow up
           the dot streaks off the map when the backend reports NaN.
         </p>
       </div>

@@ -75,7 +75,7 @@ export default function ConvExplorer({ tabBar }) {
         setParamCount(created.param_count);
         if (prev) api.deleteCnn(prev).catch(() => {});
       } catch (e) {
-        toast(`CNN — ${e.message}`);
+        toast(`CNN ${e.message}`);
       } finally {
         setBusy(false);
       }
@@ -96,7 +96,7 @@ export default function ConvExplorer({ tabBar }) {
       api
         .cnnForward({ networkId, image })
         .then((data) => alive && setForward(data))
-        .catch((e) => alive && toast(`FORWARD — ${e.message}`));
+        .catch((e) => alive && toast(`FORWARD ${e.message}`));
     }, 100);
     return () => {
       alive = false;
@@ -334,7 +334,7 @@ export default function ConvExplorer({ tabBar }) {
             type="number"
             value={spec.seed ?? 0}
             onChange={(e) => patchSpec({ seed: Number(e.target.value) })}
-            className="mono-num h-7 w-20 border border-line bg-panel px-1.5 text-[11px] focus:border-ink focus:outline-none"
+            className="mono-num h-7 w-20 border border-line bg-panel px-1.5 text-[13px] focus:border-ink focus:outline-none"
             style={{ borderRadius: 3 }}
           />
         </div>
@@ -344,7 +344,7 @@ export default function ConvExplorer({ tabBar }) {
         <InstrumentButton variant="primary" className="w-full" disabled={busy} onClick={onForge}>
           {busy ? "Forging…" : "Forge CNN"}
         </InstrumentButton>
-        <p className="mt-3 text-[11px] leading-relaxed text-ink-soft">
+        <p className="mt-3 text-[13px] leading-relaxed text-ink-soft">
           Editing the input repaints the feature towers live. Architecture changes need a re-forge
           (fresh random weights from the seed).
         </p>
@@ -386,7 +386,7 @@ function LayerRow({ layer, onChange, onRemove }) {
           <select
             value={layer.activation}
             onChange={(e) => onChange({ activation: e.target.value })}
-            className="mono-num h-7 border border-line bg-panel px-1.5 text-[11px] focus:border-ink focus:outline-none"
+            className="mono-num h-7 border border-line bg-panel px-1.5 text-[13px] focus:border-ink focus:outline-none"
             style={{ borderRadius: 3 }}
           >
             {ACTS.map((a) => (
@@ -536,7 +536,7 @@ function ConvDetail({ layer, channel, onClear }) {
       {valid ? (
         <ConvPixelCalc layer={layer} channel={channel} pixel={valid} />
       ) : (
-        <p className="mt-2 text-[11px] leading-relaxed text-ink-soft">
+        <p className="mt-2 text-[13px] leading-relaxed text-ink-soft">
           Click a cell above to see the exact convolution that produced it.
         </p>
       )}
@@ -600,13 +600,13 @@ function ConvPixelCalc({ layer, channel, pixel }) {
             <span className="text-ink-soft">⊙</span>
             <CalcGrid values={ch.kernel} />
             <span className="text-ink-soft">→</span>
-            <span className="mono-num text-[11px]" style={{ color: ch.partial >= 0 ? "#0EA5E9" : "#EF4444" }}>
+            <span className="mono-num text-[13px]" style={{ color: ch.partial >= 0 ? "#0EA5E9" : "#EF4444" }}>
               {ch.partial.toFixed(3)}
             </span>
           </div>
         ))}
       </div>
-      <div className="mono-num mt-3 flex flex-col gap-1 border-t border-line pt-2 text-[11px]">
+      <div className="mono-num mt-3 flex flex-col gap-1 border-t border-line pt-2 text-[13px]">
         <div>
           <span className="text-ink-soft">{multi ? "Σ channels" : "Σ"} + bias = </span>
           <span className="text-ink-soft">
@@ -700,9 +700,9 @@ function PoolingDetail({ layer, channel, onClear }) {
         </div>
       </div>
       {mask && (
-        <p className="mt-2 text-[11px] leading-relaxed text-ink-soft">
+        <p className="mt-2 text-[13px] leading-relaxed text-ink-soft">
           Keeps <span className="mono-num text-ink">{total - dropped}</span> of{" "}
-          <span className="mono-num text-ink">{total}</span> cells — drops{" "}
+          <span className="mono-num text-ink">{total}</span> cells drops{" "}
           <span className="mono-num text-crimson">{((dropped / total) * 100).toFixed(0)}%</span> of the data.
           Cerulean cells survived the {layer.pool_type} window.
         </p>
@@ -724,7 +724,7 @@ function ClassifierReadout({ forward, numClasses }) {
       <div className="flex flex-col gap-1.5">
         {probs.map((p, i) => (
           <div key={i} className="flex items-center gap-2">
-            <span className={`mono-num w-4 text-[11px] ${i === top ? "text-cerulean" : "text-ink-soft"}`}>{i}</span>
+            <span className={`mono-num w-4 text-[13px] ${i === top ? "text-cerulean" : "text-ink-soft"}`}>{i}</span>
             <div className="h-3 flex-1 overflow-hidden bg-line" style={{ borderRadius: 2 }}>
               <div
                 className="h-full"
@@ -739,7 +739,7 @@ function ClassifierReadout({ forward, numClasses }) {
           </div>
         ))}
       </div>
-      <p className="mt-2 text-[11px] text-ink-soft">
+      <p className="mt-2 text-[13px] text-ink-soft">
         Predicted class <span className="mono-num text-ink">{top}</span>. Click any pane to inspect a
         feature map; pool panes reveal what pooling discards.
       </p>

@@ -134,7 +134,7 @@ export default function TraceView({ trace, loading, edge, onClose }) {
 
           <p className="text-[10px] leading-relaxed text-ink-soft">
             Each factor is one link of the chain rule from the loss down to this parameter. Their
-            product must equal what autograd computes — and it does, to float precision.
+            product must equal what autograd computes and it does, to float precision.
           </p>
         </div>
       )}

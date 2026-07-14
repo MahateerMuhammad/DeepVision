@@ -1,5 +1,5 @@
 export default function SegmentedControl({ options, value, onChange, size = "md", className = "" }) {
-  const h = size === "sm" ? "h-7 text-[11px]" : "h-9 text-[12px]";
+  const h = size === "sm" ? "h-8 text-[14px]" : "h-10 text-[15px]";
   return (
     <div
       className={`inline-flex overflow-hidden border border-line bg-panel ${className}`}

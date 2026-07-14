@@ -32,7 +32,7 @@ TARGET = [0.2, 0.8]
 
 def test_zero_dropout_prob_is_exact_identity_vs_no_dropout_field():
     """dropout_prob=0.0 must produce numerically identical results to a
-    network with no dropout at all — the default must be a true no-op."""
+    network with no dropout at all the default must be a true no-op."""
     net_plain = build_network(_spec_no_dropout())
     net_explicit_zero = build_network(_spec_no_dropout())  # dropout_prob defaults to 0.0
 

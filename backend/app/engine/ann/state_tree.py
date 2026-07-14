@@ -35,7 +35,7 @@ def _neuron_equations(
 def _dropped_mask(post_activation: list[float], post_dropout: list[float]) -> list[float]:
     """1.0 where dropout observably zeroed an originally-nonzero activation,
     0.0 otherwise (including units that were already zero pre-dropout, e.g.
-    a dead ReLU — those can't be distinguished from "dropped" by value alone,
+    a dead ReLU those can't be distinguished from "dropped" by value alone,
     so they're reported as not-dropped rather than guessed at).
     """
     return [1.0 if (a != 0.0 and d == 0.0) else 0.0 for a, d in zip(post_activation, post_dropout)]

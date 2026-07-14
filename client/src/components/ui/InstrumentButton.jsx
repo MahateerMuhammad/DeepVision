@@ -18,9 +18,9 @@ export default function InstrumentButton({
     "active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cerulean " +
     "disabled:pointer-events-none disabled:opacity-40";
   const sizes = {
-    sm: "h-7 px-2.5 text-[11px]",
-    md: "h-9 px-3.5 text-[12px]",
-    icon: "h-9 w-9 text-[12px]",
+    sm: "h-8 px-3 text-[14px]",
+    md: "h-10 px-4 text-[15px]",
+    icon: "h-10 w-10 text-[15px]",
   };
   const looks = {
     default: active

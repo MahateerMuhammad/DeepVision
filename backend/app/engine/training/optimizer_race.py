@@ -34,7 +34,7 @@ def run_trajectory(
     iterations, recording position/loss/internal-state at every tick.
 
     Stops early (without raising) the moment a step produces a non-finite or
-    blown-up position — this IS the "learning rate too high -> diverges"
+    blown-up position this IS the "learning rate too high -> diverges"
     behavior the frontend visualizes, not an error condition.
     """
     if num_steps < 1:
@@ -113,7 +113,7 @@ def run_race(
     num_steps: int,
 ) -> dict:
     """Run several optimizers from the SAME starting point on the SAME
-    surface, side by side — the "optimizer racing" visualization.
+    surface, side by side the "optimizer racing" visualization.
 
     Each racer dict: {"label": str, "optimizer": str, "lr": float, "hyperparams": dict}.
     """

@@ -18,7 +18,7 @@ async function request(path, { method = "GET", body } = {}) {
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch {
-    throw new ApiError("ENGINE UNREACHABLE — is the backend running on :8000?", 0);
+    throw new ApiError("ENGINE UNREACHABLE is the backend running on :8000?", 0);
   }
   if (!res.ok) {
     let detail = `HTTP ${res.status}`;

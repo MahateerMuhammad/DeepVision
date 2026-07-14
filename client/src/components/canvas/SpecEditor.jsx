@@ -42,7 +42,7 @@ function VectorFields({ label, values, onChange, hot = false, onCommit }) {
                 onChange(next);
               }
             }}
-            className={`mono-num h-8 w-16 border bg-panel px-1.5 text-[12px] transition-colors duration-150 focus:outline-none ${
+            className={`mono-num h-8 w-16 border bg-panel px-1.5 text-[15px] transition-colors duration-150 focus:outline-none ${
               hot ? "border-cerulean/60 focus:border-cerulean" : "border-line focus:border-ink"
             }`}
             style={{ borderRadius: 8 }}
@@ -115,7 +115,7 @@ export default function SpecEditor({
               <select
                 value={l.activation}
                 onChange={(e) => setLayer(i, { activation: e.target.value })}
-                className="mono-num h-8 min-w-0 flex-1 border border-line bg-panel px-1 text-[12px] focus:border-ink focus:outline-none"
+                className="mono-num h-8 min-w-0 flex-1 border border-line bg-panel px-1 text-[15px] focus:border-ink focus:outline-none"
                 style={{ borderRadius: 8 }}
               >
                 {ACTIVATION_OPTS.map((a) => (
@@ -137,7 +137,7 @@ export default function SpecEditor({
                       dropout_prob: Math.min(0.9, Math.max(0, Number(e.target.value) || 0)),
                     })
                   }
-                  className={`mono-num h-8 w-12 border bg-panel px-1 text-[12px] focus:outline-none ${
+                  className={`mono-num h-8 w-12 border bg-panel px-1 text-[15px] focus:outline-none ${
                     (l.dropout_prob ?? 0) > 0 ? "border-cerulean/60 focus:border-cerulean" : "border-line focus:border-ink"
                   }`}
                   style={{ borderRadius: 8 }}
@@ -168,7 +168,7 @@ export default function SpecEditor({
           type="number"
           value={spec.seed}
           onChange={(e) => setSpec({ ...spec, seed: Number(e.target.value) })}
-          className="mono-num h-8 w-20 border border-line bg-panel px-2 text-right text-[12px] focus:border-ink focus:outline-none"
+          className="mono-num h-8 w-20 border border-line bg-panel px-2 text-right text-[15px] focus:border-ink focus:outline-none"
           style={{ borderRadius: 8 }}
         />
       </div>
@@ -191,8 +191,8 @@ export default function SpecEditor({
         {busy ? "Forging…" : "Forge network"}
       </InstrumentButton>
       {hasNetwork && (
-        <p className="text-[11px] leading-relaxed text-ink-soft">
-          Input fields are live — edit a value and press Enter to re-run the pass through the
+        <p className="text-[15px] leading-relaxed text-ink-soft">
+          Input fields are live edit a value and press Enter to re-run the pass through the
           existing weights (what-if). Forge rebuilds with fresh weights.
         </p>
       )}

@@ -230,7 +230,7 @@ export default function ActivationLab() {
         </div>
 
         <Panel
-          title={drawMode ? "f(x) — freehand input" : `f(x) — ${def.label}`}
+          title={drawMode ? "f(x) freehand input" : `f(x) ${def.label}`}
           right={
             <span className="micro-label">
               {drawMode ? "drag to draw the curve" : "drag to move the probe"}
@@ -296,7 +296,7 @@ export default function ActivationLab() {
         </Panel>
 
         <Panel
-          title={drawMode ? "f′(x) — numerical differentiation" : `f′(x) — derivative`}
+          title={drawMode ? "f′(x) numerical differentiation" : `f′(x) derivative`}
           right={
             <span className="mono-num text-[10px] text-ink-soft">
               slope @ x = {x0.toFixed(2)}
@@ -369,9 +369,9 @@ export default function ActivationLab() {
       </div>
       <div className="p-4">
         <p className="micro-label mb-2">{drawMode ? "Why smoothness matters" : "Field notes"}</p>
-        <p className="text-[12px] leading-relaxed text-ink-soft">
+        <p className="text-[14px] leading-relaxed text-ink-soft">
           {drawMode
-            ? "Backpropagation multiplies derivatives layer by layer, so f′ must exist — and behave — everywhere. Sketch a jagged curve above and watch the derivative panel spike: every kink becomes a discontinuity, and every flat segment kills the gradient outright. Smooth, monotone-ish activations keep the training signal alive."
+            ? "Backpropagation multiplies derivatives layer by layer, so f′ must exist and behave everywhere. Sketch a jagged curve above and watch the derivative panel spike: every kink becomes a discontinuity, and every flat segment kills the gradient outright. Smooth, monotone-ish activations keep the training signal alive."
             : def.note}
         </p>
       </div>

@@ -87,7 +87,7 @@ export default function FilterFactory({ tabBar }) {
           setResult(data);
           setStep((s) => Math.min(s, data.steps.length - 1));
         })
-        .catch((e) => alive && toast(`FILTER — ${e.message}`));
+        .catch((e) => alive && toast(`FILTER ${e.message}`));
     }, 120);
     return () => {
       alive = false;
@@ -319,7 +319,7 @@ export default function FilterFactory({ tabBar }) {
                 onChange={(e) => setKernelCell(r, c, e.target.value.trim())}
                 onBlur={commitKernel}
                 onKeyDown={(e) => e.key === "Enter" && commitKernel()}
-                className="mono-num h-11 w-11 border border-line bg-panel text-center text-[12px] transition-colors duration-150 focus:border-cerulean focus:outline-none"
+                className="mono-num h-11 w-11 border border-line bg-panel text-center text-[14px] transition-colors duration-150 focus:border-cerulean focus:outline-none"
                 style={{ borderRadius: 3 }}
               />
             ))
@@ -338,15 +338,15 @@ export default function FilterFactory({ tabBar }) {
       <div className="border-b border-line p-4">
         <div className="mb-1 flex items-center justify-between">
           <span className="micro-label">Stride</span>
-          <span className="mono-num text-[11px]">{stride}</span>
+          <span className="mono-num text-[13px]">{stride}</span>
         </div>
         <Fader value={stride} min={1} max={3} step={1} ticks={3} onChange={(v) => setStride(Math.round(v))} />
         <div className="mb-1 mt-4 flex items-center justify-between">
           <span className="micro-label">Padding</span>
-          <span className="mono-num text-[11px]">{padding}</span>
+          <span className="mono-num text-[13px]">{padding}</span>
         </div>
         <Fader value={padding} min={0} max={2} step={1} ticks={3} onChange={(v) => setPadding(Math.round(v))} />
-        <p className="mt-3 text-[11px] leading-relaxed text-ink-soft">
+        <p className="mt-3 text-[13px] leading-relaxed text-ink-soft">
           Stride skips input positions; padding rings the image in zeros (dashed cells) so the
           kernel can reach the border.
         </p>
@@ -374,7 +374,7 @@ export default function FilterFactory({ tabBar }) {
               style={{ borderRadius: 3, background: grayInk(b) }}
             />
           ))}
-          <span className="mono-num ml-auto text-[11px] text-ink-soft">paint 0–9 · drag to fill</span>
+          <span className="mono-num ml-auto text-[13px] text-ink-soft">paint 0–9 · drag to fill</span>
         </div>
       </div>
 
@@ -427,7 +427,7 @@ export default function FilterFactory({ tabBar }) {
         </div>
         <div className="flex items-center justify-between">
           <span className="micro-label">Position</span>
-          <span className="mono-num text-[11px]">
+          <span className="mono-num text-[13px]">
             {result ? `${Math.min(step + 1, result.steps.length)} / ${result.steps.length}` : "—"}
           </span>
         </div>
@@ -443,7 +443,7 @@ export default function FilterFactory({ tabBar }) {
             />
           </div>
         )}
-        <p className="mt-3 text-[11px] leading-relaxed text-ink-soft">
+        <p className="mt-3 text-[13px] leading-relaxed text-ink-soft">
           Hover a feature-map cell to preview its window; click to jump there. Slow the speed to
           watch each multiply-and-sum.
         </p>
@@ -488,10 +488,10 @@ function CalculationCard({ active, kernel, hovering }) {
         <p className="micro-label mb-1.5">Weighted sum</p>
         <div className="flex flex-wrap items-baseline gap-x-1 gap-y-1 leading-relaxed">
           {nonzero.length === 0 ? (
-            <span className="mono-num text-[12px] text-ink-soft">all products are zero</span>
+            <span className="mono-num text-[14px] text-ink-soft">all products are zero</span>
           ) : (
             nonzero.map((t, i) => (
-              <span key={i} className="mono-num text-[12px]">
+              <span key={i} className="mono-num text-[14px]">
                 {i > 0 && <span className="text-ink-soft">+ </span>}
                 <span className="text-ink-soft">({fmt(t.w)}×{fmt(t.x)}) </span>
                 <span style={{ color: signColor(t.p) }}>= {fmt(t.p)}</span>
@@ -499,7 +499,7 @@ function CalculationCard({ active, kernel, hovering }) {
               </span>
             ))
           )}
-          <span className="mono-num ml-2 text-[13px]">
+          <span className="mono-num ml-2 text-[15px]">
             <span className="text-ink-soft">Σ = </span>
             <span className="font-semibold text-cerulean">{active.value.toFixed(3)}</span>
           </span>

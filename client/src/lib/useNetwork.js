@@ -16,7 +16,7 @@ export const DEFAULT_TARGET = [0.2, 0.8];
 
 /**
  * Owns the live network: spec draft, creation, forward/backward results.
- * Playback / selection / trace stay in the page — this is the data spine.
+ * Playback / selection / trace stay in the page this is the data spine.
  */
 export function useNetwork(toast) {
   const { online, setParamCount } = useEngine();
@@ -61,7 +61,7 @@ export function useNetwork(toast) {
         setForward(fwd);
         return net;
       } catch (e) {
-        if (seq === seqRef.current) toast?.(`FORGE — ${e.message}`);
+        if (seq === seqRef.current) toast?.(`FORGE ${e.message}`);
         return null;
       } finally {
         if (seq === seqRef.current) setBusy(false);
@@ -82,7 +82,7 @@ export function useNetwork(toast) {
         setBackward(null); // stale after new input
         return fwd;
       } catch (e) {
-        if (seq === seqRef.current) toast?.(`FORWARD — ${e.message}`);
+        if (seq === seqRef.current) toast?.(`FORWARD ${e.message}`);
         return null;
       } finally {
         if (seq === seqRef.current) setBusy(false);
@@ -108,7 +108,7 @@ export function useNetwork(toast) {
         setForward(bwd); // backward payload includes full forward data
         return bwd;
       } catch (e) {
-        if (seq === seqRef.current) toast?.(`BACKWARD — ${e.message}`);
+        if (seq === seqRef.current) toast?.(`BACKWARD ${e.message}`);
         return null;
       } finally {
         if (seq === seqRef.current) setBusy(false);
@@ -132,7 +132,7 @@ export function useNetwork(toast) {
         setLossHistory((h) => (h.length ? [...h, ...res.loss_history.slice(1)] : res.loss_history));
         return res;
       } catch (e) {
-        if (seq === seqRef.current) toast?.(`STEP — ${e.message}`);
+        if (seq === seqRef.current) toast?.(`STEP ${e.message}`);
         return null;
       } finally {
         if (seq === seqRef.current) setBusy(false);

@@ -3,10 +3,10 @@ import StatusLED from "../ui/StatusLED";
 import { useEngine } from "../../lib/useEngine";
 
 const TITLES = {
-  "/": "MODULE 0·B·D — NETWORK CANVAS",
-  "/activations": "MODULE A — ACTIVATION LAB",
-  "/optimizers": "MODULE E — OPTIMIZER ARENA",
-  "/cnn": "MODULE C — CNN LAB",
+  "/": "MODULE 0·B·D NETWORK CANVAS",
+  "/activations": "MODULE A ACTIVATION LAB",
+  "/optimizers": "MODULE E OPTIMIZER ARENA",
+  "/cnn": "MODULE C CNN LAB",
 };
 
 export default function TopBar() {

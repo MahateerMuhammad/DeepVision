@@ -30,6 +30,12 @@ const ICONS = {
       <rect x="7" y="7" width="10" height="10" />
     </svg>
   ),
+  batchnorm: (
+    <svg width="20" height="20" viewBox="0 0 20 20" {...S}>
+      <path d="M2 16 V11 M6 16 V6 M10 16 V3 M14 16 V8 M18 16 V12" />
+      <path d="M2 16 H18" strokeOpacity="0.35" />
+    </svg>
+  ),
 };
 
 const ROUTES = [
@@ -37,6 +43,7 @@ const ROUTES = [
   { to: "/activations", icon: "activation", label: "Activation Lab" },
   { to: "/optimizers", icon: "optimizer", label: "Optimizer Arena" },
   { to: "/cnn", icon: "cnn", label: "CNN Lab" },
+  { to: "/batchnorm", icon: "batchnorm", label: "BatchNorm" },
 ];
 
 export default function NavRail() {
@@ -55,7 +62,7 @@ export default function NavRail() {
               isActive ? "text-ink" : "text-ink-soft hover:bg-black/[0.04] hover:text-ink"
             }`
           }
-          style={{ borderRadius: 3 }}
+          style={{ borderRadius: 8 }}
         >
           {({ isActive }) => (
             <>

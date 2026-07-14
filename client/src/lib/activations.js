@@ -8,7 +8,7 @@ export const ACTIVATIONS = {
     domain: [-4, 4],
     range: [-0.5, 4],
     dRange: [-0.25, 1.25],
-    note: "Piecewise linear — the kink at x = 0 makes f′ discontinuous. Gradient is exactly 0 for all negative inputs: dead units never recover.",
+    note: "Piecewise linear the kink at x = 0 makes f′ discontinuous. Gradient is exactly 0 for all negative inputs: dead units never recover.",
   },
   leaky_relu: {
     label: "Leaky ReLU",
@@ -29,7 +29,7 @@ export const ACTIVATIONS = {
     domain: [-6, 6],
     range: [-0.15, 1.15],
     dRange: [-0.05, 0.3],
-    note: "f′ peaks at only 0.25 and collapses toward 0 in the tails — stack a few of these and gradients vanish geometrically.",
+    note: "f′ peaks at only 0.25 and collapses toward 0 in the tails stack a few of these and gradients vanish geometrically.",
   },
   tanh: {
     label: "Tanh",
@@ -38,7 +38,7 @@ export const ACTIVATIONS = {
     domain: [-4, 4],
     range: [-1.25, 1.25],
     dRange: [-0.15, 1.15],
-    note: "Zero-centered with f′(0) = 1 — healthier than sigmoid, but the tails still saturate to zero gradient.",
+    note: "Zero-centered with f′(0) = 1  healthier than sigmoid, but the tails still saturate to zero gradient.",
   },
   linear: {
     label: "Linear",
@@ -47,7 +47,7 @@ export const ACTIVATIONS = {
     domain: [-4, 4],
     range: [-4.5, 4.5],
     dRange: [-0.25, 1.5],
-    note: "Constant gradient of 1, but a stack of linear layers collapses to a single linear map — no depth is gained.",
+    note: "Constant gradient of 1, but a stack of linear layers collapses to a single linear map no depth is gained.",
   },
 };
 

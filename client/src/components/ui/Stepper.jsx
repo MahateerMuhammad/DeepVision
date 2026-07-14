@@ -1,6 +1,6 @@
 export default function Stepper({ value, onChange, min = 1, max = 12, className = "" }) {
   const btn =
-    "flex h-8 w-8 items-center justify-center text-base text-ink-soft transition-colors duration-150 " +
+    "flex h-9 w-9 items-center justify-center text-lg text-ink-soft transition-colors duration-150 " +
     "hover:bg-black/[0.04] hover:text-ink active:translate-y-px disabled:pointer-events-none disabled:opacity-30 " +
     "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-cerulean";
   return (
@@ -17,7 +17,7 @@ export default function Stepper({ value, onChange, min = 1, max = 12, className 
       >
         −
       </button>
-      <span className="mono-num flex w-9 items-center justify-center border-x border-line text-sm font-medium">
+      <span className="mono-num flex w-10 items-center justify-center border-x border-line text-base font-medium">
         {value}
       </span>
       <button

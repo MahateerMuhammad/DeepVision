@@ -34,7 +34,7 @@ def trace_weight_gradient(
     ∂L/∂a is read directly from the captured backward pass, which is already
     the fully-aggregated, autograd-correct value (it legitimately sums over
     every downstream path when a neuron fans out to multiple next-layer
-    neurons — that summation IS the multivariate chain rule, not an
+    neurons that summation IS the multivariate chain rule, not an
     approximation of it). For pedagogy, when this layer isn't the last one,
     we additionally expand that sum into its per-downstream-neuron terms.
     """

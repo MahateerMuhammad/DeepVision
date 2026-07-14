@@ -10,6 +10,7 @@ import KatexBlock from "../components/ui/KatexBlock";
 import Odometer from "../components/ui/Odometer";
 import InstrumentButton from "../components/ui/InstrumentButton";
 import SegmentedControl from "../components/ui/SegmentedControl";
+import ErrorBoundary from "../components/ui/ErrorBoundary";
 import { useToast } from "../components/ui/Toast";
 import { useNetwork, DEFAULT_SPEC } from "../lib/useNetwork";
 import { layoutNetwork } from "../lib/graphLayout";
@@ -199,7 +200,7 @@ export default function NetworkCanvas() {
       });
       setTrace(t);
     } catch (err) {
-      toast(`TRACE — ${err.message}`);
+      toast(`TRACE ${err.message}`);
       setSelection(null);
     } finally {
       setTraceLoading(false);
@@ -239,11 +240,11 @@ export default function NetworkCanvas() {
               <p className="micro-label !text-crimson">Engine offline</p>
             </div>
             <div className="px-5 py-4">
-              <p className="mb-3 text-[13px] leading-relaxed text-ink-soft">
-                The canvas reads every number from a live PyTorch engine — nothing here is faked.
+              <p className="mb-3 text-[15px] leading-relaxed text-ink-soft">
+                The canvas reads every number from a live PyTorch engine nothing here is faked.
                 Start the backend, and the instrument will connect on its own:
               </p>
-              <pre className="mono-num thin-scroll overflow-x-auto border border-line bg-canvas px-3 py-2 text-[11px] leading-relaxed" style={{ borderRadius: 8 }}>
+              <pre className="mono-num thin-scroll overflow-x-auto border border-line bg-canvas px-3 py-2 text-[15px] leading-relaxed" style={{ borderRadius: 8 }}>
 {`cd backend
 source venv/bin/activate
 uvicorn main:app --port 8000`}
@@ -300,7 +301,7 @@ uvicorn main:app --port 8000`}
         disabled={!net.forward}
       />
 
-      {/* loss readout — backward mode */}
+      {/* loss readout backward mode */}
       <AnimatePresence>
         {mode === "backward" && net.backward && (
           <motion.div
@@ -322,14 +323,18 @@ uvicorn main:app --port 8000`}
   // ── inspector region ──
   const inspector =
     traceEdge != null ? (
-      <TraceView trace={trace} loading={traceLoading} edge={traceEdge} onClose={clearSelection} />
+      <ErrorBoundary resetKey={`trace:${traceEdge?.id}:${net.network?.id}`}>
+        <TraceView trace={trace} loading={traceLoading} edge={traceEdge} onClose={clearSelection} />
+      </ErrorBoundary>
     ) : selection?.type === "node" ? (
-      <NodeCard
-        node={selection}
-        forwardData={net.forward}
-        backwardData={net.backward}
-        onClose={clearSelection}
-      />
+      <ErrorBoundary resetKey={`node:${selection.col}:${selection.neuron}:${net.network?.id}`}>
+        <NodeCard
+          node={selection}
+          forwardData={net.forward}
+          backwardData={net.backward}
+          onClose={clearSelection}
+        />
+      </ErrorBoundary>
     ) : (
       <div className="flex flex-col">
         <SpecEditor
@@ -364,7 +369,7 @@ uvicorn main:app --port 8000`}
                   min="0.001"
                   value={lr}
                   onChange={(e) => setLr(Math.max(0.001, Number(e.target.value) || 0.001))}
-                  className="mono-num h-8 w-16 border border-line bg-panel px-1.5 text-[12px] focus:border-ink focus:outline-none"
+                  className="mono-num h-8 w-16 border border-line bg-panel px-1.5 text-[15px] focus:border-ink focus:outline-none"
                   style={{ borderRadius: 8 }}
                 />
               </label>
@@ -376,7 +381,7 @@ uvicorn main:app --port 8000`}
                   max="500"
                   value={steps}
                   onChange={(e) => setSteps(Math.min(500, Math.max(1, Math.round(Number(e.target.value) || 1))))}
-                  className="mono-num h-8 w-16 border border-line bg-panel px-1.5 text-[12px] focus:border-ink focus:outline-none"
+                  className="mono-num h-8 w-16 border border-line bg-panel px-1.5 text-[15px] focus:border-ink focus:outline-none"
                   style={{ borderRadius: 8 }}
                 />
               </label>
@@ -389,7 +394,7 @@ uvicorn main:app --port 8000`}
               <div className="mt-3">
                 <div className="mb-0.5 flex items-center justify-between">
                   <span className="micro-label">loss</span>
-                  <span className="mono-num text-[11px] text-ink">
+                  <span className="mono-num text-[14px] text-ink">
                     {net.lossHistory[net.lossHistory.length - 1].toFixed(6)}
                   </span>
                 </div>
@@ -402,8 +407,8 @@ uvicorn main:app --port 8000`}
                 </div>
               </div>
             )}
-            <p className="mt-2 text-[11px] leading-relaxed text-ink-soft">
-              Applies plain SGD to the live weights, then re-runs backprop — watch the gradient field
+            <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
+              Applies plain SGD to the live weights, then re-runs backprop watch the gradient field
               and loss shrink over repeated presses. This mutates the network; Forge to reset.
             </p>
           </div>
@@ -432,23 +437,23 @@ uvicorn main:app --port 8000`}
                 ) ?? 0;
               if (!anyDropout) {
                 return (
-                  <p className="text-[11px] leading-relaxed text-ink-soft">
+                  <p className="text-[15px] leading-relaxed text-ink-soft">
                     Set a layer's <span className="mono-num text-ink">p</span> above 0 and Forge, then
                     watch units rain out in Train mode.
                   </p>
                 );
               }
               return (
-                <p className="text-[11px] leading-relaxed text-ink-soft">
+                <p className="text-[15px] leading-relaxed text-ink-soft">
                   {trainingMode === "train" ? (
                     <>
                       <span className="mono-num text-crimson">{dropped}</span> unit
-                      {dropped === 1 ? "" : "s"} dropped this pass — survivors are scaled up by{" "}
+                      {dropped === 1 ? "" : "s"} dropped this pass survivors are scaled up by{" "}
                       <span className="mono-num text-ink">1/(1−p)</span> so the expected signal is
                       preserved. Re-run (edit input · Enter) to resample the mask.
                     </>
                   ) : (
-                    <>Eval mode: dropout is off — every unit passes through, the standard behaviour at inference.</>
+                    <>Eval mode: dropout is off every unit passes through, the standard behaviour at inference.</>
                   )}
                 </p>
               );
@@ -480,8 +485,8 @@ uvicorn main:app --port 8000`}
                 />
               </button>
             </div>
-            <p className="mt-1.5 text-[11px] leading-relaxed text-ink-soft">
-              Tints ReLU units whose activation is exactly zero for this input — they pass no
+            <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">
+              Tints ReLU units whose activation is exactly zero for this input they pass no
               gradient and learn nothing this step.
             </p>
           </div>
@@ -532,7 +537,7 @@ uvicorn main:app --port 8000`}
                       <span className="micro-label">
                         Layer {String(l.layer_index + 1).padStart(2, "0")} · max |∂L/∂z|
                       </span>
-                      <span className={`mono-num text-[11px] font-medium ${dry ? "text-crimson" : ""}`}>
+                      <span className={`mono-num text-[14px] font-medium ${dry ? "text-crimson" : ""}`}>
                         {dry ? `${mx.toExponential(2)} · DRY` : mx.toFixed(6)}
                       </span>
                     </div>

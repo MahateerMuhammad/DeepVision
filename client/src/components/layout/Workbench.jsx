@@ -13,7 +13,7 @@ export default function Workbench({ canvas, inspector }) {
       <main className="relative min-w-0 flex-1 overflow-hidden">{canvas}</main>
 
       {/* desktop inspector */}
-      <aside className="hidden w-[360px] shrink-0 flex-col border-l border-line bg-panel lg:flex">
+      <aside className="hidden w-[420px] shrink-0 flex-col border-l border-line bg-panel lg:flex">
         <div className="thin-scroll min-h-0 flex-1 overflow-y-auto">{inspector}</div>
       </aside>
 
@@ -40,7 +40,7 @@ export default function Workbench({ canvas, inspector }) {
             />
             <motion.aside
               key="sheet"
-              className="absolute inset-y-0 right-0 z-50 flex w-[min(360px,90vw)] flex-col border-l border-line bg-panel lg:hidden"
+              className="absolute inset-y-0 right-0 z-50 flex w-[min(420px,92vw)] flex-col border-l border-line bg-panel lg:hidden"
               initial={{ x: 24, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 24, opacity: 0 }}

@@ -80,7 +80,7 @@ export default function ReceptiveField({ tabBar }) {
         setNetworkId(created.network_id);
         if (prev) api.deleteCnn(prev).catch(() => {});
       } catch (e) {
-        toast(`CNN — ${e.message}`);
+        toast(`CNN ${e.message}`);
       } finally {
         setBusy(false);
       }
@@ -99,7 +99,7 @@ export default function ReceptiveField({ tabBar }) {
       api
         .cnnForward({ networkId, image: [image] })
         .then((data) => alive && setForward(data))
-        .catch((e) => alive && toast(`FORWARD — ${e.message}`));
+        .catch((e) => alive && toast(`FORWARD ${e.message}`));
     }, 100);
     return () => {
       alive = false;
@@ -176,7 +176,7 @@ export default function ReceptiveField({ tabBar }) {
         col: validTarget.c,
       })
       .then((data) => alive && setRf(data))
-      .catch((e) => alive && toast(`RF — ${e.message}`));
+      .catch((e) => alive && toast(`RF ${e.message}`));
     return () => {
       alive = false;
     };
@@ -308,7 +308,7 @@ export default function ReceptiveField({ tabBar }) {
             type="number"
             value={spec.seed ?? 0}
             onChange={(e) => patchSpec({ seed: Number(e.target.value) })}
-            className="mono-num h-7 w-20 border border-line bg-panel px-1.5 text-[11px] focus:border-ink focus:outline-none"
+            className="mono-num h-7 w-20 border border-line bg-panel px-1.5 text-[13px] focus:border-ink focus:outline-none"
             style={{ borderRadius: 3 }}
           />
         </div>
@@ -318,8 +318,8 @@ export default function ReceptiveField({ tabBar }) {
         <InstrumentButton variant="primary" className="w-full" disabled={busy} onClick={onForge}>
           {busy ? "Forging…" : "Forge CNN"}
         </InstrumentButton>
-        <p className="mt-3 text-[11px] leading-relaxed text-ink-soft">
-          Receptive field is pure geometry — kernel size, stride and padding — so it's identical for
+        <p className="mt-3 text-[13px] leading-relaxed text-ink-soft">
+          Receptive field is pure geometry kernel size, stride and padding so it's identical for
           every channel and every weight. Add depth or stride to watch one neuron's window over the
           input grow.
         </p>
@@ -414,7 +414,7 @@ function StageGrid({ stage, region, isTargetStage, active, pickable = true, onPi
 function RfReadout({ rf, target, stages, regions, geom, forward }) {
   if (!forward) return <p className="micro-label">Awaiting forward pass…</p>;
   if (!target || !rf) {
-    return <p className="text-[12px] leading-relaxed text-ink-soft">Click a cell in any stage to trace its receptive field.</p>;
+    return <p className="text-[14px] leading-relaxed text-ink-soft">Click a cell in any stage to trace its receptive field.</p>;
   }
   const [rh, rw] = rf.receptive_field_size;
   const inH = forward.input[0].length;
@@ -442,7 +442,7 @@ function RfReadout({ rf, target, stages, regions, geom, forward }) {
         <span className="micro-label">input pixels</span>
       </div>
 
-      <div className="mono-num flex flex-col gap-1 text-[11px] text-ink-soft">
+      <div className="mono-num flex flex-col gap-1 text-[13px] text-ink-soft">
         <div className="flex justify-between">
           <span>rows (raw)</span>
           <span className="text-ink">[{rf.raw_row_range[0]}, {rf.raw_row_range[1]}]</span>
@@ -466,8 +466,8 @@ function RfReadout({ rf, target, stages, regions, geom, forward }) {
       </div>
 
       {clipped && (
-        <p className="mt-2 text-[11px] leading-relaxed text-ink-soft">
-          The raw window spills past the image edge — near the border the effective field is{" "}
+        <p className="mt-2 text-[13px] leading-relaxed text-ink-soft">
+          The raw window spills past the image edge near the border the effective field is{" "}
           <span className="text-crimson">clipped</span>, so edge neurons see less than interior ones.
         </p>
       )}
