@@ -1,10 +1,10 @@
 export default function SegmentedControl({ options, value, onChange, size = "md", className = "" }) {
-  const h = size === "sm" ? "h-6 text-[10px]" : "h-8 text-[11px]";
+  const h = size === "sm" ? "h-7 text-[11px]" : "h-9 text-[12px]";
   return (
     <div
       className={`inline-flex overflow-hidden border border-line bg-panel ${className}`}
       role="tablist"
-      style={{ borderRadius: 3 }}
+      style={{ borderRadius: 8 }}
     >
       {options.map((opt, i) => {
         const selected = opt.value === value;

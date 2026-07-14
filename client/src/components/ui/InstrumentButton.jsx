@@ -18,9 +18,9 @@ export default function InstrumentButton({
     "active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cerulean " +
     "disabled:pointer-events-none disabled:opacity-40";
   const sizes = {
-    sm: "h-6 px-2 text-[10px]",
-    md: "h-8 px-3 text-[11px]",
-    icon: "h-8 w-8 text-[11px]",
+    sm: "h-7 px-2.5 text-[11px]",
+    md: "h-9 px-3.5 text-[12px]",
+    icon: "h-9 w-9 text-[12px]",
   };
   const looks = {
     default: active
@@ -35,7 +35,7 @@ export default function InstrumentButton({
       title={title}
       disabled={disabled}
       className={`${base} ${sizes[size]} ${looks[variant]} ${className}`}
-      style={{ borderRadius: 3, transitionTimingFunction: "cubic-bezier(0.16,1,0.3,1)" }}
+      style={{ borderRadius: 8, transitionTimingFunction: "cubic-bezier(0.16,1,0.3,1)" }}
       {...props}
     >
       {children}

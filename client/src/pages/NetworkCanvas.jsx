@@ -243,7 +243,7 @@ export default function NetworkCanvas() {
                 The canvas reads every number from a live PyTorch engine — nothing here is faked.
                 Start the backend, and the instrument will connect on its own:
               </p>
-              <pre className="mono-num thin-scroll overflow-x-auto border border-line bg-canvas px-3 py-2 text-[11px] leading-relaxed" style={{ borderRadius: 3 }}>
+              <pre className="mono-num thin-scroll overflow-x-auto border border-line bg-canvas px-3 py-2 text-[11px] leading-relaxed" style={{ borderRadius: 8 }}>
 {`cd backend
 source venv/bin/activate
 uvicorn main:app --port 8000`}
@@ -364,8 +364,8 @@ uvicorn main:app --port 8000`}
                   min="0.001"
                   value={lr}
                   onChange={(e) => setLr(Math.max(0.001, Number(e.target.value) || 0.001))}
-                  className="mono-num h-7 w-16 border border-line bg-panel px-1.5 text-[11px] focus:border-ink focus:outline-none"
-                  style={{ borderRadius: 3 }}
+                  className="mono-num h-8 w-16 border border-line bg-panel px-1.5 text-[12px] focus:border-ink focus:outline-none"
+                  style={{ borderRadius: 8 }}
                 />
               </label>
               <label className="flex items-center justify-between gap-1">
@@ -376,8 +376,8 @@ uvicorn main:app --port 8000`}
                   max="500"
                   value={steps}
                   onChange={(e) => setSteps(Math.min(500, Math.max(1, Math.round(Number(e.target.value) || 1))))}
-                  className="mono-num h-7 w-16 border border-line bg-panel px-1.5 text-[11px] focus:border-ink focus:outline-none"
-                  style={{ borderRadius: 3 }}
+                  className="mono-num h-8 w-16 border border-line bg-panel px-1.5 text-[12px] focus:border-ink focus:outline-none"
+                  style={{ borderRadius: 8 }}
                 />
               </label>
             </div>
@@ -402,7 +402,7 @@ uvicorn main:app --port 8000`}
                 </div>
               </div>
             )}
-            <p className="mt-2 text-[10px] leading-relaxed text-ink-soft">
+            <p className="mt-2 text-[11px] leading-relaxed text-ink-soft">
               Applies plain SGD to the live weights, then re-runs backprop — watch the gradient field
               and loss shrink over repeated presses. This mutates the network; Forge to reset.
             </p>
@@ -432,14 +432,14 @@ uvicorn main:app --port 8000`}
                 ) ?? 0;
               if (!anyDropout) {
                 return (
-                  <p className="text-[10px] leading-relaxed text-ink-soft">
+                  <p className="text-[11px] leading-relaxed text-ink-soft">
                     Set a layer's <span className="mono-num text-ink">p</span> above 0 and Forge, then
                     watch units rain out in Train mode.
                   </p>
                 );
               }
               return (
-                <p className="text-[10px] leading-relaxed text-ink-soft">
+                <p className="text-[11px] leading-relaxed text-ink-soft">
                   {trainingMode === "train" ? (
                     <>
                       <span className="mono-num text-crimson">{dropped}</span> unit
@@ -480,7 +480,7 @@ uvicorn main:app --port 8000`}
                 />
               </button>
             </div>
-            <p className="mt-1.5 text-[10px] leading-relaxed text-ink-soft">
+            <p className="mt-1.5 text-[11px] leading-relaxed text-ink-soft">
               Tints ReLU units whose activation is exactly zero for this input — they pass no
               gradient and learn nothing this step.
             </p>
@@ -498,7 +498,7 @@ uvicorn main:app --port 8000`}
                 <div
                   key={eq.neuron}
                   className="border border-line bg-canvas px-3 py-2"
-                  style={{ borderRadius: 3 }}
+                  style={{ borderRadius: 8 }}
                 >
                   <p className="micro-label mb-1">neuron {eq.neuron}</p>
                   <div className="thin-scroll overflow-x-auto">
@@ -527,7 +527,7 @@ uvicorn main:app --port 8000`}
                     <div
                       key={l.layer_index}
                       className="flex items-center justify-between border border-line bg-canvas px-3 py-1.5"
-                      style={{ borderRadius: 3 }}
+                      style={{ borderRadius: 8 }}
                     >
                       <span className="micro-label">
                         Layer {String(l.layer_index + 1).padStart(2, "0")} · max |∂L/∂z|
@@ -584,7 +584,7 @@ function LossSparkline({ history }) {
       viewBox={`0 0 ${W} ${H}`}
       preserveAspectRatio="none"
       className="block w-full border border-line bg-canvas"
-      style={{ height: H, borderRadius: 3 }}
+      style={{ height: H, borderRadius: 8 }}
     >
       <polyline points={points} fill="none" stroke="#0EA5E9" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
     </svg>
