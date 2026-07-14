@@ -124,6 +124,25 @@ export default function SpecEditor({
                   </option>
                 ))}
               </select>
+              <label className="flex shrink-0 items-center gap-1" title="dropout probability (0–0.9)">
+                <span className="micro-label">p</span>
+                <input
+                  type="number"
+                  step="0.05"
+                  min="0"
+                  max="0.9"
+                  value={l.dropout_prob ?? 0}
+                  onChange={(e) =>
+                    setLayer(i, {
+                      dropout_prob: Math.min(0.9, Math.max(0, Number(e.target.value) || 0)),
+                    })
+                  }
+                  className={`mono-num h-7 w-12 border bg-panel px-1 text-[11px] focus:outline-none ${
+                    (l.dropout_prob ?? 0) > 0 ? "border-cerulean/60 focus:border-cerulean" : "border-line focus:border-ink"
+                  }`}
+                  style={{ borderRadius: 3 }}
+                />
+              </label>
               <button
                 type="button"
                 aria-label={`remove layer ${i + 1}`}

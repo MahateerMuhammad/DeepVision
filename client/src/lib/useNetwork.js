@@ -71,12 +71,12 @@ export function useNetwork(toast) {
   );
 
   const runForward = useCallback(
-    async (input = inputVec) => {
+    async (input = inputVec, training = true) => {
       if (!network) return null;
       const seq = ++seqRef.current;
       setBusy(true);
       try {
-        const fwd = await api.forward({ networkId: network.id, input });
+        const fwd = await api.forward({ networkId: network.id, input, training });
         if (seq !== seqRef.current) return null;
         setForward(fwd);
         setBackward(null); // stale after new input

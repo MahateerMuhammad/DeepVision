@@ -9,6 +9,7 @@ import NodeCard from "../components/canvas/NodeCard";
 import KatexBlock from "../components/ui/KatexBlock";
 import Odometer from "../components/ui/Odometer";
 import InstrumentButton from "../components/ui/InstrumentButton";
+import SegmentedControl from "../components/ui/SegmentedControl";
 import { useToast } from "../components/ui/Toast";
 import { useNetwork, DEFAULT_SPEC } from "../lib/useNetwork";
 import { layoutNetwork } from "../lib/graphLayout";
@@ -54,6 +55,7 @@ export default function NetworkCanvas() {
   // ── training controls ──
   const [lr, setLr] = useState(0.1);
   const [steps, setSteps] = useState(10);
+  const [trainingMode, setTrainingMode] = useState("train"); // "train" => dropout active, "eval" => off
 
   const resetPlayback = useCallback(() => {
     setRevealed(0);
@@ -118,6 +120,7 @@ export default function NetworkCanvas() {
       setActiveSpec(snapshot);
       resetPlayback();
       setMode("forward");
+      setTrainingMode("train"); // fresh forward runs with dropout active
     }
   };
 
@@ -129,8 +132,20 @@ export default function NetworkCanvas() {
     if (mode === "backward") {
       await net.runBackward(input, nums(net.targetVec), net.loss);
     } else {
-      await net.runForward(input);
+      await net.runForward(input, trainingMode === "train");
     }
+  };
+
+  // toggle dropout on (train) / off (eval) and re-run the forward pass
+  const handleTrainingMode = async (value) => {
+    if (value === trainingMode || !net.network) return;
+    setTrainingMode(value);
+    setSelection(null);
+    setTrace(null);
+    setMode("forward");
+    resetPlayback();
+    const fwd = await net.runForward(nums(net.inputVec), value === "train");
+    if (fwd) setRevealed(L); // show the whole updated pass at once
   };
 
   // apply N SGD steps to the live weights, then show the updated gradient field
@@ -391,6 +406,53 @@ uvicorn main:app --port 8000`}
               Applies plain SGD to the live weights, then re-runs backprop — watch the gradient field
               and loss shrink over repeated presses. This mutates the network; Forge to reset.
             </p>
+          </div>
+        )}
+
+        {net.network && (
+          <div className="border-t border-line p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="micro-label">Dropout · train vs eval</p>
+              <SegmentedControl
+                size="sm"
+                options={[
+                  { value: "train", label: "Train" },
+                  { value: "eval", label: "Eval" },
+                ]}
+                value={trainingMode}
+                onChange={handleTrainingMode}
+              />
+            </div>
+            {(() => {
+              const anyDropout = activeSpec.layers.some((l) => (l.dropout_prob ?? 0) > 0);
+              const dropped =
+                net.forward?.layers.reduce(
+                  (s, l) => s + (l.dropped_mask?.reduce((a, b) => a + b, 0) || 0),
+                  0
+                ) ?? 0;
+              if (!anyDropout) {
+                return (
+                  <p className="text-[10px] leading-relaxed text-ink-soft">
+                    Set a layer's <span className="mono-num text-ink">p</span> above 0 and Forge, then
+                    watch units rain out in Train mode.
+                  </p>
+                );
+              }
+              return (
+                <p className="text-[10px] leading-relaxed text-ink-soft">
+                  {trainingMode === "train" ? (
+                    <>
+                      <span className="mono-num text-crimson">{dropped}</span> unit
+                      {dropped === 1 ? "" : "s"} dropped this pass — survivors are scaled up by{" "}
+                      <span className="mono-num text-ink">1/(1−p)</span> so the expected signal is
+                      preserved. Re-run (edit input · Enter) to resample the mask.
+                    </>
+                  ) : (
+                    <>Eval mode: dropout is off — every unit passes through, the standard behaviour at inference.</>
+                  )}
+                </p>
+              );
+            })()}
           </div>
         )}
 

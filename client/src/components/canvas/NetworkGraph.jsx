@@ -167,6 +167,22 @@ export default function NetworkGraph({
     [forwardData]
   );
 
+  const isDropped = useCallback(
+    (n) => {
+      if (n.isInput || !forwardData) return false;
+      return forwardData.layers[n.layerIndex]?.dropped_mask?.[n.neuron] === 1;
+    },
+    [forwardData]
+  );
+
+  // A token that changes whenever a new forward pass arrives, so the drop
+  // animation replays each time the dropout mask is resampled.
+  const forwardTokenRef = useRef(0);
+  const forwardToken = useMemo(() => {
+    void forwardData; // recompute the token on each new forward pass
+    return ++forwardTokenRef.current;
+  }, [forwardData]);
+
   const edgeStyle = useCallback(
     (e) => {
       const fl = forwardData?.layers[e.layerIndex];
@@ -414,7 +430,9 @@ export default function NetworkGraph({
               {layout.nodes.map((n) => {
                 const v = nodeValue(n);
                 const shown = n.isInput ? forwardData != null : fRevealed(n.layerIndex);
+                const dropped = shown && isDropped(n);
                 const isDead =
+                  !dropped &&
                   deadXray &&
                   !n.isInput &&
                   spec.layers[n.layerIndex]?.activation === "relu" &&
@@ -438,20 +456,37 @@ export default function NetworkGraph({
                     <circle
                       r={NODE_R}
                       fill={
-                        isDead
-                          ? "rgba(239,68,68,0.15)"
-                          : shown && v != null
-                            ? v >= 0
-                              ? `rgba(14,165,233,${0.08 + mag * 0.3})`
-                              : `rgba(239,68,68,${0.08 + mag * 0.25})`
-                            : "#FFFFFF"
+                        dropped
+                          ? "rgba(161,161,170,0.10)"
+                          : isDead
+                            ? "rgba(239,68,68,0.15)"
+                            : shown && v != null
+                              ? v >= 0
+                                ? `rgba(14,165,233,${0.08 + mag * 0.3})`
+                                : `rgba(239,68,68,${0.08 + mag * 0.25})`
+                              : "#FFFFFF"
                       }
-                      stroke={isDead ? CRIMSON : isSel ? CERULEAN : INK}
+                      stroke={dropped ? "#A1A1AA" : isDead ? CRIMSON : isSel ? CERULEAN : INK}
                       strokeWidth="1.5"
+                      strokeDasharray={dropped ? "2.5 2.5" : undefined}
+                      opacity={dropped ? 0.6 : 1}
                       style={{ transition: "fill 300ms, stroke 150ms" }}
                     />
-                    {/* activation value under node (odometer) */}
-                    {shown && v != null && (
+                    {/* dropout: a droplet falls away each time the mask resamples */}
+                    {dropped && (
+                      <motion.circle
+                        key={`drop-${n.id}-${forwardToken}`}
+                        r={2.4}
+                        cx={0}
+                        fill="#A1A1AA"
+                        initial={{ cy: 0, opacity: 0.9 }}
+                        animate={{ cy: NODE_R * 3.4, opacity: 0 }}
+                        transition={{ duration: 0.7, ease: "easeIn" }}
+                        style={{ pointerEvents: "none" }}
+                      />
+                    )}
+                    {/* activation value under node (odometer) — hidden for dropped units */}
+                    {shown && v != null && !dropped && (
                       <foreignObject x={-30} y={NODE_R + 4} width="60" height="14" style={{ pointerEvents: "none", overflow: "visible" }}>
                         <div className="flex justify-center">
                           <Odometer
@@ -462,6 +497,11 @@ export default function NetworkGraph({
                           />
                         </div>
                       </foreignObject>
+                    )}
+                    {dropped && (
+                      <text y={NODE_R + 11} textAnchor="middle" className="mono-num" style={{ fontSize: 7, fill: "#A1A1AA" }}>
+                        drop
+                      </text>
                     )}
                   </g>
                 );
