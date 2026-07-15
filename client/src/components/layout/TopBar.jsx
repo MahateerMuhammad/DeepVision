@@ -7,6 +7,7 @@ const TITLES = {
   "/activations": "MODULE A ACTIVATION LAB",
   "/optimizers": "MODULE E OPTIMIZER ARENA",
   "/cnn": "MODULE C CNN LAB",
+  "/batchnorm": "MODULE F BATCHNORM TRACKER",
 };
 
 export default function TopBar() {
