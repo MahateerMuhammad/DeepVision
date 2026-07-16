@@ -24,13 +24,13 @@ Define an architecture (layers, activations, dropout, kernels)
  forge a real torch.nn.Module (seeded, reproducible)
         │
         ▼
- run a forward pass — every intermediate tensor captured via hooks
+ run a forward pass every intermediate tensor captured via hooks
         │
         ▼
  step through it layer by layer (VCR-style playback)
         │
         ▼
- backpropagate — gradients captured, chain rule traceable per weight
+ backpropagate gradients captured, chain rule traceable per weight
         │
         ▼
  apply gradient steps and watch the loss fall / weights change
@@ -41,23 +41,23 @@ Define an architecture (layers, activations, dropout, kernels)
 
 ## Screenshots
 
-| Network Canvas — semantic-zoom graph, live activations, forward/backward stepping, gradient descent |
+| Network Canvas semantic-zoom graph, live activations, forward/backward stepping, gradient descent |
 |---|
 | ![Network Canvas](docs/screenshots/network-canvas.png) |
 
-| Activation Lab — curves, derivatives, freehand draw | Optimizer Arena — loss surfaces & optimizer racing |
+| Activation Lab curves, derivatives, freehand draw | Optimizer Arena loss surfaces & optimizer racing |
 |---|---|
 | ![Activation Lab](docs/screenshots/activation-lab.png) | ![Optimizer Arena](docs/screenshots/optimizer-arena.png) |
 
-| Filter Factory — hand-edit a kernel, watch it convolve | Conv Explorer — feature maps as stacked glass panes in 3D |
+| Filter Factory hand-edit a kernel, watch it convolve | Conv Explorer feature maps as stacked glass panes in 3D |
 |---|---|
 | ![Filter Factory](docs/screenshots/cnn-filter-factory.png) | ![Conv Explorer](docs/screenshots/cnn-conv-explorer.png) |
 
-| Receptive Field — back-trace a deep neuron to its input patch | Saliency — which pixels move a class score |
+| Receptive Field back-trace a deep neuron to its input patch | Saliency which pixels move a class score |
 |---|---|
 | ![Receptive Field](docs/screenshots/cnn-receptive-field.png) | ![Saliency](docs/screenshots/cnn-saliency.png) |
 
-| BatchNorm Tracker — watch features squeeze to μ=0, σ=1 |
+| BatchNorm Tracker watch features squeeze to μ=0, σ=1 |
 |---|
 | ![BatchNorm Tracker](docs/screenshots/batchnorm-tracker.png) |
 
@@ -67,11 +67,11 @@ Define an architecture (layers, activations, dropout, kernels)
 
 | Module | Route | What you can do |
 |---|---|---|
-| **0 · B · D** — Network Canvas | `/` | Zoomable D3 graph with semantic zoom. Step a forward pass layer by layer, flip to backward mode to watch gradients flow, click any edge for a full chain-rule trace, click any neuron for its exact arithmetic. Edit the input and re-run through frozen weights ("what-if"). Apply SGD steps and watch weights update and loss fall. Dial dropout up and watch units rain out. |
-| **A** — Activation Lab | `/activations` | Activation curves and their derivatives, a draggable probe, and a freehand draw mode. |
-| **C** — CNN Lab | `/cnn` | Four instruments: **Filter Factory** (edit a kernel by hand, step the sliding window, click any output cell for the term-by-term weighted sum), **Conv Explorer** (feature maps as stacked glass panes in 3D; click a pixel for the full multi-channel convolution), **Receptive Field** (click a deep neuron, watch the box back-trace to its input footprint), **Saliency** (paint an input, see which pixels drive a class). |
-| **E** — Optimizer Arena | `/optimizers` | Loss surfaces, optimizer racing, divergence, momentum vectors. |
-| **F** — Dropout & BatchNorm | `/` + `/batchnorm` | Dropout Rain lives in the Network Canvas (train/eval toggle, live drop mask). BatchNorm Tracker animates a batch collapsing onto μ=0, σ=1, with γ/β sliders to re-stretch it. |
+| **0 · B · D**  Network Canvas | `/` | Zoomable D3 graph with semantic zoom. Step a forward pass layer by layer, flip to backward mode to watch gradients flow, click any edge for a full chain-rule trace, click any neuron for its exact arithmetic. Edit the input and re-run through frozen weights ("what-if"). Apply SGD steps and watch weights update and loss fall. Dial dropout up and watch units rain out. |
+| **A** Activation Lab | `/activations` | Activation curves and their derivatives, a draggable probe, and a freehand draw mode. |
+| **C** CNN Lab | `/cnn` | Four instruments: **Filter Factory** (edit a kernel by hand, step the sliding window, click any output cell for the term-by-term weighted sum), **Conv Explorer** (feature maps as stacked glass panes in 3D; click a pixel for the full multi-channel convolution), **Receptive Field** (click a deep neuron, watch the box back-trace to its input footprint), **Saliency** (paint an input, see which pixels drive a class). |
+| **E** Optimizer Arena | `/optimizers` | Loss surfaces, optimizer racing, divergence, momentum vectors. |
+| **F** Dropout & BatchNorm | `/` + `/batchnorm` | Dropout Rain lives in the Network Canvas (train/eval toggle, live drop mask). BatchNorm Tracker animates a batch collapsing onto μ=0, σ=1, with γ/β sliders to re-stretch it. |
 
 ---
 
@@ -111,15 +111,15 @@ flowchart TD
     API -- "activations, gradients, equations" --> Client
 ```
 
-**The state-tree boundary:** a forward or backward call doesn't just return an output — it returns a *state tree*: every layer's input, weights, biases, pre-activation, post-activation, dropout mask, per-weight gradients, and LaTeX-rendered equations. The frontend is a pure renderer of that tree. This is why stepping, what-if editing, and the chain-rule tracer are all exact rather than approximations.
+**The state-tree boundary:** a forward or backward call doesn't just return an output  it returns a *state tree*: every layer's input, weights, biases, pre activation, post-activation, dropout mask, per-weight gradients, and LaTeX-rendered equations. The frontend is a pure renderer of that tree. This is why stepping, what-if editing, and the chain-rule tracer are all exact rather than approximations.
 
 ### Why hooks, and why the order matters
 
-Intermediate tensors are captured with `register_forward_hook` / `register_full_backward_hook`. Backward hooks **must** be registered *before* `forward()` runs — they attach to the autograd graph as it is built and cannot be retrofitted onto a completed pass. Both recorders therefore wrap forward + loss + backward in a single context (`build_backward_state_tree`).
+Intermediate tensors are captured with `register_forward_hook` / `register_full_backward_hook`. Backward hooks **must** be registered *before* `forward()` runs they attach to the autograd graph as it is built and cannot be retrofitted onto a completed pass. Both recorders therefore wrap forward + loss + backward in a single context (`build_backward_state_tree`).
 
 ### Why the receptive field is computed twice
 
-`POST /cnn/receptive-field` walks the kernel/stride/padding recurrence backward through every stage — pure geometry, exact regardless of weight values. The client mirrors that same recurrence to draw the per-stage boxes, but the **backend stays authoritative** for the reported numbers. Both use identical math, so they cannot disagree.
+`POST /cnn/receptive-field` walks the kernel/stride/padding recurrence backward through every stage pure geometry, exact regardless of weight values. The client mirrors that same recurrence to draw the per-stage boxes, but the **backend stays authoritative** for the reported numbers. Both use identical math, so they cannot disagree.
 
 ---
 
@@ -127,7 +127,7 @@ Intermediate tensors are captured with `register_forward_hook` / `register_full_
 
 | Layer | Choice | Why |
 |---|---|---|
-| Engine | **PyTorch 2.2.2** | Real autograd — the whole point. Hooks give exact intermediate tensors for free. |
+| Engine | **PyTorch 2.2.2** | Real autograd the whole point. Hooks give exact intermediate tensors for free. |
 | API | **FastAPI** + Pydantic v2 | Typed request/response, minimal boilerplate, automatic OpenAPI docs at `/docs`. |
 | State | **In-memory registries** | No database. A "network" is a live `nn.Module` held by id; training steps mutate it in place, which is what makes "watch it learn" work. |
 | Frontend | **React 19 + Vite 8** | Fast HMR; React 19 across the whole instrument surface. |
@@ -231,7 +231,7 @@ pytest -q                             # 255 passed
 
 ## API reference
 
-No auth, no database — a network is a live `nn.Module` held in memory under a returned `network_id`.
+No auth, no database a network is a live `nn.Module` held in memory under a returned `network_id`.
 
 | Method | Path | Purpose |
 |---|---|---|
