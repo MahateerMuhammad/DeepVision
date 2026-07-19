@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import StatusLED from "../ui/StatusLED";
 import { useEngine } from "../../lib/useEngine";
+import logo from "../../assets/logo.png";
 
 const TITLES = {
   "/": "MODULE 0·B·D NETWORK CANVAS",
@@ -15,6 +16,7 @@ export default function TopBar() {
   const { online, paramCount } = useEngine();
   return (
     <header className="z-40 flex h-12 shrink-0 items-center gap-4 border-b border-line bg-panel px-4">
+      <img src={logo} alt="DeepVision" className="h-6 w-6 shrink-0" />
       <span className="text-[13px] font-bold tracking-[0.14em] select-none">
         DEEP<span className="text-cerulean">VISION</span>
       </span>

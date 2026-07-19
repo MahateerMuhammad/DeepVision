@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="client/public/favicon.svg" width="88" alt="DeepVision logo" />
+<img src="client/src/assets/logo.png" width="88" alt="DeepVision logo" />
 
 # DeepVision
 
