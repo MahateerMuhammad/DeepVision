@@ -288,7 +288,7 @@ No auth, no database a network is a live `nn.Module` held in memory under a retu
 
 ## License
 
-No license file yet — add one before publishing if you intend others to reuse this.
+[MIT](LICENSE)
 
 ## A note on scope
 
